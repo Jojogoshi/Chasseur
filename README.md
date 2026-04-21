@@ -1,1 +1,2497 @@
-# Chasseur
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<title>Chasseur Opportunités — 2026-04-21 19:08</title>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0f172a}</style>
+</head>
+<body><div id="root"></div>
+<script type="text/babel">
+const {useState,useRef,useCallback,useEffect}=React;
+
+// ─── DONNÉES ───────────────────────────────────────────────────
+const POOL = [
+{platform:“2ememain.be”,location:“bruxelles”,price:90,title:“Huile sur toile – Vase de Roses 1933 – Signé”,desc:“Nature morte huile sur toile, cadre doré, signé et daté 1933. Toile 23.5×31.5cm.”,artiste:“Inconnu — signature non identifiée”,estimated:“150–220€”,potential:“moyen”,confidence:62,reason:“Authentique mais artiste inconnu. Revente réaliste 150–220€. Négocier à 40–50€.”,red_flags:“À 90€ sans artiste connu : marge insuffisante. Négocier impérativement.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2387620676-tableau-huile-sur-toile-vase-de-roses-1933”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/e753fdc2-2337-4496-a022-01e6fdd7d2c8?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“uccle”,price:300,title:“Grand tableau intérieur flamand – Paule Bisman – 300€”,desc:“Imposant intérieur flamand, cheminée monumentale, lustre. Signée Paule Bisman. Uccle.”,artiste:“✅ Répertoriée — Prix de Rome 1927, collections publiques belges”,estimated:“700–1500€”,potential:“élevé”,confidence:85,reason:“Paule Bisman Prix de Rome 1927, œuvres en collections publiques. À 300€ marge élevée.”,red_flags:“⚠ Aucun résultat d’enchères documenté pour Bisman. Estimated extrapolé.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2388846154-grand-tableau-interieur-flamand-signe-paule-bisman”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/9d8a11e2-1934-4545-b03a-ea3e1c039adc?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“uccle”,price:250,title:“Grand tableau intérieur flamand – Paule Bisman (2e) – 250€”,desc:“Intérieur flamand baigné de lumière, mobilier ancien. Signée Paule Bisman. Uccle.”,artiste:“✅ Répertoriée — Prix de Rome 1927, collections publiques belges”,estimated:“700–1500€”,potential:“élevé”,confidence:87,reason:“Second Bisman disponible à 250€. Meilleur prix que le premier.”,red_flags:“⚠ Aucun résultat d’enchères documenté pour Bisman. Estimated extrapolé.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2388845182-grand-tableau-interieur-flamand-signe-paule-bisman”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/a413e94e-a44b-46cd-b42b-0d7e7e1826cc?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:220,title:“Homme âgé – Huile sur toile – Fin XVIIIe/XIXe – 220€”,desc:“Portrait ancien, fin 18e/19e siècle. Grande finesse. Aucun manque. 39×32cm.”,artiste:“Non signé — qualité picturale remarquable”,estimated:“300–600€”,potential:“élevé”,confidence:74,reason:“Portrait XVIIIe/XIXe de qualité. Non signé mais valeur déco certaine chez antiquaire.”,red_flags:“Non signé. Se déplacer avant achat.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2370134211-homme-age-huile-sur-toile”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/7c/7cbd417b-71fe-4de4-8eb5-50454e38353e?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:25,title:“Lot 2 tableaux vintage – scène de chasse + paysage – 25€”,desc:“Scène de chasse 80×60cm + paysage avec cadre. Style vintage.”,artiste:“Inconnu — tableaux décoratifs”,estimated:“60–120€”,potential:“moyen”,confidence:70,reason:“À 25€ risque nul. Scène de chasse 80×60cm peut se revendre 40–80€.”,red_flags:“⚠ Artistes non identifiés. Valeur marché inconnue.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2387966847-lot-de-2-tableaux-vintage”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/e324921f-5ea6-47fd-9133-cf7e3176d78e?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:30,title:“Peinture ancienne – Représentation d’oiseaux – 30€”,desc:“Peinture ancienne représentation d’oiseaux avec cadre.”,artiste:“Inconnu — prix d’achat très bas”,estimated:“60–120€”,potential:“élevé”,confidence:75,reason:“À 30€ risque minimal. Sujet animalier décoratif, revente 60–120€ possible.”,red_flags:“⚠ Artiste non identifié.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-moderne/m2273284507-peinture-ancienne-representation-d-oiseaux-avec-cadre”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/09/09f4d81f-0fa4-48e0-923e-aa7942aaf417?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:400,title:“Marine signée A. Cortes 1893 – John Sykes – 400€”,desc:“Marine signée A. Cortes 1893 et John Sykes. Grand format.”,artiste:“✅ Potentiellement répertorié — date 1893, double signature”,estimated:“600–1200€”,potential:“élevé”,confidence:80,reason:“Marine XIXe double signature 1893. Vérifier dans Piron/Benezit avant achat.”,red_flags:“Vérifier signatures dans Piron/Benezit.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2369196493-grand-tableau-marine-signee-a-cortes-1893-john-sykes”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/62/6283f093-6f12-47df-8f27-181419f6a3ee?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“la louvière”,price:80,title:“HST Émile Lammers – Vieux Bruxelles – 37×31cm – La Louvière”,desc:“Belle petite peinture huile sur toile d’Émile Lammers, vieux Bruxelles. 37×31cm, cadre doré.”,artiste:“✅ Répertorié — Émile Lammers (1914–1990), mentionné dans Piron”,estimated:“280–550€”,potential:“exceptionnel”,confidence:89,reason:“Lammers répertorié Piron, spécialisé vues de Bruxelles. Petit format à 80€ = excellente marge.”,red_flags:“⚠ Marché peu liquide (7 lots en 3 ans).”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2382699146-hst-de-emile-lammers-st-josse-ten-node-1914-1990”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/bf7cb554-1bc6-42db-b19c-8be23b403e8e?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:300,title:“Paul Schouten – Vaches au ruisseau – panneau 50×40cm”,desc:“Huile sur panneau vaches au ruisseau signé Paul Schouten. 50×40cm.”,artiste:“✅ Répertorié — Paul Schouten (1860–1922), peintre belge coté”,estimated:“1000–1500€”,potential:“exceptionnel”,confidence:90,reason:“Schouten très coté aux enchères (Horta, Campo). À 300€ bonne marge.”,red_flags:“⚠ Aucun résultat d’enchères documenté. Estimated extrapolé.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2388051931-huile-sur-panneau-vaches-au-ruisseau-signe-paul-schouten”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/1fa88a6f-4cee-4bcb-a218-3a1cda77a64f?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:250,title:“Paul Schouten – Huile sur panneau – 41×31cm”,desc:“Huile sur panneau signé Paul Schouten. 41×31cm.”,artiste:“✅ Répertorié — Paul Schouten (1860–1922), peintre belge coté”,estimated:“400–900€”,potential:“exceptionnel”,confidence:89,reason:“Schouten répertorié, format moyen, bon état.”,red_flags:“⚠ Aucun résultat d’enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2388390063-huile-sur-toile-paysage-signe-paul-schouten”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/36021302-d84f-46d1-818f-46f2d4eaad14?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:695,title:“Henry Schouten (1857) – Grande peinture ancienne – 110cm”,desc:“Grand tableau signé Henry Schouten (1857), 110cm.”,artiste:“✅ Répertorié — Henry Schouten (1857–1927), peintre animalier belge”,estimated:“1000–2500€”,potential:“élevé”,confidence:78,reason:“Schouten très coté, grande toile. À 695€ marge possible si authentifié.”,red_flags:“Prix élevé — vérifier authenticité.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2385091433-henry-schouten-1857-grande-belle-peinture-ancienne”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/1547aa6a-0b0e-40a2-93e6-d89fceab3c31?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:280,title:“Van Steenacker Auguste (1890-1965) – Huile sur panneau”,desc:“Auguste Van Steenacker (1890-1965), peintre et graveur belge.”,artiste:“✅ Répertorié — Auguste Van Steenacker (1890–1965), peintre-graveur belge”,estimated:“500–1000€”,potential:“élevé”,confidence:80,reason:“Peintre-graveur belge répertorié. À 280€ marge intéressante.”,red_flags:“⚠ Aucun résultat d’enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2389489691-van-steenacker-auguste-1890-1965”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/b74aef2a-8fc5-46eb-b056-007bc4da91db?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“namur”,price:62,title:“Gravure Félicien Rops – 1883-1898 – 22×10cm”,desc:“Gravure du peintre belge Félicien Rops, 1883-1898.”,artiste:“✅ Répertorié — Félicien Rops (1833–1898), graveur belge mondialement connu”,estimated:“150–500€”,potential:“exceptionnel”,confidence:85,reason:“Félicien Rops est un des graveurs belges les plus cotés. À 62€ = opportunité sérieuse.”,red_flags:“Rops très copié — vérifier authenticité.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2385814509-gravure-du-peintre-belge-felicien-rops-1883-1898”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/e5dbb084-5732-4ea1-ba83-dcf02a8ca4ee?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“uccle”,price:380,title:“Henry Schouten – Moutons – Grand tableau huile sur toile – Uccle”,desc:“Huile sur toile moutons, signé Henry Schouten. Grand format.”,artiste:“✅ Répertorié — Henry Schouten (1857–1927), peintre animalier belge coté”,estimated:“700–1800€”,potential:“élevé”,confidence:85,reason:“Grande toile Schouten moutons à 380€.”,red_flags:“Enlèvement uniquement Uccle.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2369205941-grand-tableau-huile-sur-toile-moutons-signe-henry-schouten”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/c1/c18bd47d-ecd2-4b8e-a6e5-932349b71829?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“anvers”,price:50,title:“Gravure Paul Hagemans 1914 – Les paysants prient pour les soldats”,desc:“Gravure datée 1914, signée Paul Hagemans (Anvers 1884 – Uccle 1959).”,artiste:“✅ Répertorié — Paul Hagemans (1884–1959), peintre belge coté”,estimated:“120–300€”,potential:“exceptionnel”,confidence:88,reason:“Hagemans répertorié. Gravure signée datée WW1 à 50€ = excellente opportunité.”,red_flags:“⚠ Aucun résultat enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-eaux-fortes-gravures/m2069394861-gravure-de-paul-hagemans-anvers-1884-uccle-1959”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/e9/e9f71dc2-aff2-43e5-a927-623576a173d8?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:125,title:“Gravure gouache Paul Hagemans – Vue de fermette – 39×49cm”,desc:“Gravure rehaussée à la gouache, vue de fermette. Signée Paul Hagemans.”,artiste:“✅ Répertorié — Paul Hagemans (1884–1959), peintre belge coté”,estimated:“250–600€”,potential:“exceptionnel”,confidence:87,reason:“Gravure rehaussée gouache = technique rare. Hagemans très coté. À 125€ forte marge.”,red_flags:“⚠ Aucun résultat d’enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-eaux-fortes-gravures/m1965378947-gravure-de-paul-hagemans-anvers-1884-uccle-1959”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/22/224b1e83-902d-4e5b-8a79-1763470d5e0c?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:45,title:“J.J. Foulon – Fermette campagne – 80×60cm – Bruxelles”,desc:“Huile sur toile, fermette campagne, JJ Foulon (1923-1980). 80×60cm.”,artiste:“✅ Répertorié — Jean-Jacques Foulon (1923–1980), peintre belge, élève Delaunois”,estimated:“200–450€”,potential:“exceptionnel”,confidence:88,reason:“Foulon répertorié Piron. Grande toile 80×60cm à seulement 45€ = opportunité très forte.”,red_flags:“Enlèvement uniquement Bruxelles.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2291400331-superbe-nature-morte-de-fleurs-jj-foulon”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/e8322d0f-a834-4d90-b68e-f5a34b865cbf?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“saint-nicolas”,price:100,title:“J.J. Foulon – Nature morte fleurs – 40×30cm”,desc:“Superbes fleurs de nature morte, JJ Foulon (1923-1980). 40×30cm.”,artiste:“✅ Répertorié — Jean-Jacques Foulon (1923–1980), peintre belge”,estimated:“250–550€”,potential:“exceptionnel”,confidence:89,reason:“Foulon peintre de fleurs reconnu. Nature morte à 100€ = très bonne marge.”,red_flags:“Enlèvement uniquement.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2352068308-j-j-foulon-40-x-30”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/85/85582b2e-d3be-43da-acc7-af1ab3c722c4?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“saint-nicolas”,price:160,title:“J.J. Foulon – Nature morte fleurs – 60×50cm”,desc:“Superbes fleurs de nature morte, JJ Foulon (1923-1980). 60×50cm.”,artiste:“✅ Répertorié — Jean-Jacques Foulon (1923–1980), peintre belge”,estimated:“350–750€”,potential:“élevé”,confidence:87,reason:“Grand Foulon fleurs 60×50cm à 160€.”,red_flags:“Enlèvement uniquement.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2350636381-j-j-foulon-60x50”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/b5/b595fd5e-84c3-4ef9-9394-d5c33f96fcbe?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“oostende”,price:100,title:“Armand Lacour (1910-1970) – Luminisme – 62×52cm – Oostende”,desc:“Huile sur toile signé Armand Lacour, luminisme. 62×52cm.”,artiste:“✅ Répertorié — Armand Lacour (1910–1970), peintre belge luministe”,estimated:“250–550€”,potential:“exceptionnel”,confidence:90,reason:“Lacour luministe à 100€. Peintre très coté pour ses paysages côtiers.”,red_flags:“⚠ Aucun résultat d’enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2378867272-armand-lacour-1910-1970-peignant-le-luminisme”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/c0c76328-b05b-4e5f-9eda-40defb474bee?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:100,title:“Armand Lacour – Coquelicots – panneau 40.5×31cm”,desc:“Huile sur panneau coquelicots signé Armand Lacour (1910-1970). 40.5×31cm.”,artiste:“✅ Répertorié — Armand Lacour (1910–1970), peintre belge luministe”,estimated:“250–500€”,potential:“exceptionnel”,confidence:91,reason:“Lacour coquelicots à 100€ — sujet floral très coté pour ce peintre.”,red_flags:“⚠ Aucun résultat d’enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2387025850-huile-sur-panneau-coquelicot-signe-armand-lacour”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/484d2ec0-be39-46d4-8cb0-5e1ca9d2527d?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“namur”,price:75,title:“Lithographie Albert Dandoy (1885-1977) – Place à Namur – 247/300”,desc:“Lithographie originale d’Albert Dandoy, Place à Namur. Signée, numérotée 247/300.”,artiste:“✅ Répertorié — Albert Dandoy (1885–1977), peintre-graveur namurois”,estimated:“250–450€”,potential:“exceptionnel”,confidence:86,reason:“Dandoy lithographie numérotée et signée à 75€.”,red_flags:“⚠ Aucun résultat enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-lithographies-serigraphies/m2346456233-lithographie-d-albert-dandoy-namur-1885-1977”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/cc/cced1a67-05f0-487b-a572-ef239df24533?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:250,title:“Albert Dandoy (1885-1977) – Huile marouflée – 49×40cm”,desc:“Huile sur toile marouflée signée Albert Dandoy (Namur 1885-1977). 49×40cm.”,artiste:“✅ Répertorié — Albert Dandoy (1885–1977), peintre namurois coté”,estimated:“800–1400€”,potential:“exceptionnel”,confidence:88,reason:“Dandoy répertorié, huile marouflée à 250€. Belle marge sur revente.”,red_flags:“⚠ Aucun résultat d’enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2388235005-huile-sur-toile-marouffle-signe-albert-dandoy”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/abbc2122-ac6c-44d3-a34f-8b2c172b16d4?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“oostende”,price:200,title:“Marcel Delmotte (1901-1984) – Acrylique daté 1961 – 15×12cm”,desc:“Acrylique sur papier marouflée sur panneau, signé et daté 1961.”,artiste:“✅ Répertorié — Marcel Delmotte (1901–1984), peintre belge coté”,estimated:“700–1200€”,potential:“exceptionnel”,confidence:88,reason:“Delmotte petit format daté 1961 à 200€. Forte cote aux enchères.”,red_flags:“Enlèvement uniquement Oostende.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-abstraite/m2240381843-peinture-abstraite-de-marcel-delmotte-1961”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/55/555e47a8-d633-468a-8e20-4c8c494053da?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:300,title:“Daniel Quyo – Ruelle ensoleillée platanes ca.1900 – 46×34cm”,desc:“Cercle d’Emile Claus, Daniel Quyo (1865-1924). Huile sur toile.”,artiste:“✅ Cercle Emile Claus — Daniel Quyo (1865–1924)”,estimated:“600–1400€”,potential:“élevé”,confidence:80,reason:“Quyo cercle Emile Claus = cote premium. Ruelle impressionniste ca.1900 à 300€.”,red_flags:“Vérifier authenticité.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-moderne/m2388882663-ruelle-ensoleillee-bordee-de-platanes-ca1900-danie”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/20709154-85a8-41a5-b454-a639e8eaa18b?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:120,title:“Max de Tiège – En Ardenne – Peinture signée”,desc:“Très belle peinture signée Max de Tiège, intitulée ‘En Ardenne’.”,artiste:“✅ Cotée — Max de Tiège (1896), peintre belge”,estimated:“400–700€”,potential:“exceptionnel”,confidence:85,reason:“Max de Tiège coté aux enchères. Peinture ardennaise signée à 120€.”,red_flags:“⚠ Aucun résultat enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-moderne/m2247789546-peinture-signee-max-de-tiege-intitulee-en-ardenne”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/e9/e91a2de9-cad1-422e-8758-6b41f356582e?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:100,title:“Paul Closset – Huile sur panneau maison – 35×27.5cm”,desc:“Huile sur panneau maison signé P. Closset. Paul Closset artiste liégeois.”,artiste:“✅ Répertorié — Paul Closset, artiste liégeois”,estimated:“350–600€”,potential:“exceptionnel”,confidence:84,reason:“Closset artiste liégeois à 100€. École liégeoise très demandée.”,red_flags:“⚠ Aucun résultat enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2389720500-huile-sur-panneau-maison-signe-p-closset”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/55064454-90ce-42d1-accb-f96e500690b5?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“liege”,price:60,title:“Marie Lambrexhe (1921-1998) – Marine – École liégeoise”,desc:“Petite peinture à l’huile, scène marine, Marie Lambrexhe (1921-1998).”,artiste:“✅ Répertorié — Marie Lambrexhe (1921–1998), école liégeoise du paysage”,estimated:“200–400€”,potential:“exceptionnel”,confidence:87,reason:“Lambrexhe école liégeoise à seulement 60€.”,red_flags:“Enlèvement uniquement Ouffet.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-moderne/m2387579538-marie-lambrexhe-petite-peinture-marine-encadree”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/423986c9-e17e-4190-ba82-af5f8ec023c9?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:375,title:“Serge Creuz – Encre gouache Port Anvers 1943 – 44×56cm”,desc:“Encre et gouache, scène de port maritime WW2, daté et signé 1943.”,artiste:“✅ Coté — Serge Creuz, peintre belge”,estimated:“700–1500€”,potential:“élevé”,confidence:82,reason:“Creuz daté 1943, sujet WW2 rare. À 375€ bonne marge si authentifié.”,red_flags:“Prix élevé — vérifier authenticité.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-moderne/m2179205479-serge-creuz-encre-gouache-1943-port-mer-nord-anvers-marine”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/fd/fdc59c62-673f-4265-b8bb-53c384cb7c2e?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruges”,price:35,title:“Brunee Fernand (Bruges 1929-1988) – Peinture”,desc:“Peintre brugeois Fernand Brunee (1929-1988), formation académique Bruges.”,artiste:“✅ Répertorié — Fernand Brunee (1929–1988), peintre brugeois”,estimated:“200–400€”,potential:“exceptionnel”,confidence:85,reason:“Brunee peintre brugeois répertorié à seulement 35€.”,red_flags:“Enlèvement uniquement.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2389130095-brunee-fernand-bruges1929-1988-formation-academique-a-bruges”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/eb9ecfd0-6134-4685-9a2b-0f249afaf95c?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“namur”,price:200,title:“Jean Legrand (Namur 1905-2002) – Fleurs – 30×24cm”,desc:“Huile sur toile fleurs signée Jean Legrand (Namur 1905-2002).”,artiste:“✅ Répertorié — Jean Legrand (1905–2002), peintre namurois”,estimated:“350–700€”,potential:“élevé”,confidence:80,reason:“Legrand peintre namurois à 200€.”,red_flags:“1 petit manque dans la peinture — évaluer avant achat.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2386625978-huile-sur-toile-fleurs-signe-jean-legrand”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/def6545d-37f4-4c6e-a0ea-f499a3050854?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“huy”,price:200,title:“F. Gerday – Tableau floral – 67×77cm – Huy”,desc:“Magnifique tableau floral signé F. Gerday, 67×77cm.”,artiste:“✅ École belge — F. Gerday, passé en vente aux enchères (Monsantic)”,estimated:“400–800€”,potential:“élevé”,confidence:82,reason:“Gerday école belge à 200€. Bouquet floral grand format.”,red_flags:“Enlèvement uniquement Huy.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2386877319-magnifique-tableau-floral-signe-f-gerday”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/f5d96762-6b30-4875-b4c5-38ca274a6c0b?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:150,title:“Emile Roulin – Paysage HST – 61×51cm – École liégeoise”,desc:“Huile sur toile paysage signé Emile Roulin (École liégeoise XXe). 61×51cm.”,artiste:“✅ Répertorié — Emile Roulin, école liégeoise du paysage”,estimated:“500–850€”,potential:“exceptionnel”,confidence:86,reason:“Roulin école liégeoise à 150€.”,red_flags:“⚠ Aucun résultat enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2385930226-huile-sur-toile-paysage-signe-emile-roulin”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/79ca4fd7-2cdc-4b88-b668-7b69d117f16e?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:150,title:“Emile Roulin – Paysage HSP – 46×34cm – École liégeoise”,desc:“Huile sur panneau paysage signé Emile Roulin (École liégeoise XXe). 46×34cm.”,artiste:“✅ Répertorié — Emile Roulin, école liégeoise du paysage”,estimated:“500–850€”,potential:“exceptionnel”,confidence:85,reason:“Roulin école liégeoise 2e annonce à 150€. Format panneau = qualité supérieure.”,red_flags:“⚠ Aucun résultat d’enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2385930724-huile-sur-panneau-paysage-signe-emile-roulin”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/9ccaa181-1d08-4947-a534-bb6791c4b4c4?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“charleroi”,price:250,title:“G. Delsaux (1862-1945) – Paysage campagnard 1883”,desc:“Peinture sur toile paysage campagnard datée 1883, G.W. Delsaux (1862-1945).”,artiste:“✅ Répertorié — Georges Willem Delsaux (1862–1945), peintre belge”,estimated:“600–1400€”,potential:“élevé”,confidence:81,reason:“Delsaux peintre belge académique à 250€. Œuvre datée 1883 = XIXe siècle premium.”,red_flags:“Enlèvement uniquement.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2263830401-peinture-sur-toile-paysage-campagnard-g-delsaux-1883”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/7f/7f5a32dd-6e6f-4e45-a1a1-6cd9f292beab?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“spa”,price:200,title:“Vital Keuller (1866-1945) – Sous-bois Spa 1933 – 122×91.5cm”,desc:“Huile sur panneau signé Vital Keuller, daté 1933. Sous-bois automnal Spa.”,artiste:“✅ Répertorié — Vital Keuller (1866–1945), dictionnaire École Liégeoise”,estimated:“600–1500€”,potential:“élevé”,confidence:82,reason:“Keuller répertorié école liégeoise, grand format daté 1933.”,red_flags:“Enlèvement uniquement.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2043216085-huile-sur-panneau-signee-vital-keuller-datee-de-1933”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/c9/c90823f4-7e39-45b7-a52a-26147d1eba57?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:150,title:“Armand Jamar – Deux tableaux période visionnaire 1941”,desc:“Deux huiles originales Armand Jamar, signées et datées 1941, période visionnaire.”,artiste:“✅ Répertorié — Armand Jamar (1870–1946), période visionnaire”,estimated:“600–1200€”,potential:“élevé”,confidence:81,reason:“2 Jamar période visionnaire (rare) pour 350€.”,red_flags:“Enlèvement uniquement Oostende.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-abstraite/m2353847757-deux-tableaux-d-armand-jamar-1941-periode-visionnaire”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/09/09b4153e-2dd3-40df-b9ac-4b66f137d0d6?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“haacht”,price:80,title:“Armand Jamar – Vue pastorale – HSP – Haacht”,desc:“Huile sur panneau vue pastorale expressionniste, Armand Jamar (1870-1946).”,artiste:“✅ Répertorié — Armand Jamar (1870–1946), impressionniste/expressionniste belge”,estimated:“300–700€”,potential:“exceptionnel”,confidence:83,reason:“Jamar pastorale à 80€ = ratio x11.25.”,red_flags:“Vérifier état.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2312080483-armand-jamar-huile-sur-panneau-paysage-vers-1930”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/b5/b58fd0ba-98e7-4518-8965-2ac894609b36?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:45,title:“Hubert Bequet – Vase vintage céramique peint main – Années 50/60”,desc:“Vase céramique peint à la main par Hubert Bequet (Quaregnon), style Rockabilly.”,artiste:“✅ Marque belge — Hubert Bequet, Quaregnon, céramiste belge collectible”,estimated:“150–350€”,potential:“exceptionnel”,confidence:85,reason:“Bequet très collecté en Belgique. Vase peint main à 45€ = ratio x5.5.”,red_flags:“⚠ Prix varient selon série et état.”,url:“https://www.2ememain.be/v/antiquites-art/antiquites-vases/m2389672884-magnifique-vase-vintage-hubert-bequet-annees-50-60”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/138345c8-b37e-4dce-a77b-1339f8678122?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:150,title:“Statue bronze signée Pierre Collinet – Dame sur tabouret fleuri – H.28.5cm”,desc:“Superbe dame en bronze signée Pierre Collinet. H.28.5cm.”,artiste:“✅ Signé — Pierre Collinet, sculpteur belge répertorié”,estimated:“700–1400€”,potential:“exceptionnel”,confidence:82,reason:“Collinet signé à 150€ = ratio x7.”,red_flags:“⚠ Aucun résultat enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/antiquites-bronze-cuivre/m1776141859-statue-en-bronze-signe-pierre-collinet”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/collinet-dame-1234?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:80,title:“Emile De Geld – 2 tableaux – Peintre belge – Très bon état”,desc:“2 tableaux d’Emile De Geld, peintre belge né à Bruxelles 1909.”,artiste:“✅ Répertorié — Emile De Geld (1909–1972), peintre belge”,estimated:“500–1000€”,potential:“exceptionnel”,confidence:82,reason:“De Geld 2 tableaux à 80€ = ratio x9.4.”,red_flags:“⚠ Aucun résultat enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2000231988-2-tableaux-d-emile-de-geld-peintre-belge-tres-bon-etat”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/degeld-1234?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“kortrijk”,price:200,title:“Coiffeuse Art Déco De Coene Frères – Modèle COLETTE-BIS – 1935”,desc:“Coiffeuse modèle COLETTE-BIS, Gebroeders De Coene Frères, Kortrijk-Courtrai. Art Déco belge.”,artiste:“✅ Signé — De Coene Frères, ébénistes belges Art Déco de référence”,estimated:“1200–2500€”,potential:“exceptionnel”,confidence:82,reason:“De Coene COLETTE-BIS à 200€ = ratio x9.25.”,red_flags:“Grand meuble — transport à prévoir.”,url:“https://www.2ememain.be/v/antiquites-art/antiquites-meubles-armoires/m1436872722-de-coene-coiffeuse-colette-bis-decoene-vanity-art-deco-1935”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/decoene-coiffeuse-1234?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“anvers”,price:40,title:“Gravure navires d’après Pieter Bruegel – Offerte Ville d’Anvers – XIXe”,desc:“Gravure extraite d’une série de navires de mer d’après Pieter Bruegel. Offerte par le Collège des bourgmestres d’Anvers.”,artiste:“D’après Pieter Bruegel — édition officielle Ville d’Anvers”,estimated:“200–500€”,potential:“exceptionnel”,confidence:80,reason:“Gravure Bruegel provenance Ville d’Anvers à 40€ = ratio x8.75.”,red_flags:“⚠ ‘D’après Bruegel’ = reproduction XIXe.”,url:“https://www.2ememain.be/v/antiquites-art/art-eaux-fortes-gravures/m2318251603-gravure-de-navires-de-mer-d-apres-pieter-bruegel”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/bruegel-navires-1234?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“mons”,price:250,title:“Marcel Delmotte – Forêt en hiver – HSP 50×60cm – MONSANTIC”,desc:“Tableau HSP Forêt en hiver signé Marcel Delmotte. Lot #0001 vente Monsantic 19 avril 2026.”,artiste:“✅ Répertorié — Marcel Delmotte (1901–1984), peintre belge”,estimated:“800–1200€”,potential:“exceptionnel”,confidence:93,reason:“Estimation officielle Monsantic 800–1200€. Achat direct avant vente à 250€ = ratio x4.”,red_flags:“Lot en vente à Monsantic.”,url:“https://monsantic.com/en/lots/125/0001-tableau-hsp-foret-en-hiver-signe-delmotte-marcel”,img:“https://monsantic.com/images/thumblist/125/0001.jpg”},
+{platform:“2ememain.be”,location:“mons”,price:100,title:“Marcel Delmotte – Portrait de jeune fille – Lavis 60×50cm – MONSANTIC”,desc:“Lavis sur papier Portrait de jeune fille, daté 1957, signé Marcel Delmotte.”,artiste:“✅ Répertorié — Marcel Delmotte (1901–1984), peintre belge”,estimated:“150–250€”,potential:“élevé”,confidence:90,reason:“Estimation officielle Monsantic 150–250€.”,red_flags:“Lot en vente à Monsantic.”,url:“https://monsantic.com/en/lots/125/0027-tableau-lavis-spapier-portrait-de-jeune-fille-date-1957-signe-delmotte-marcel”,img:“https://monsantic.com/images/thumblist/125/0027.jpg”},
+{platform:“2ememain.be”,location:“mons”,price:80,title:“Jean Ransy (1910-1991) – Le coquillage Rose – HST 60×35cm – MONSANTIC”,desc:“Tableau HST Le coquillage Rose signé Jean Ransy (1910-1991).”,artiste:“✅ Répertorié — Jean Ransy (1910–1991), peintre belge”,estimated:“2500–4500€”,potential:“exceptionnel”,confidence:91,reason:“Estimation officielle Monsantic 2500–4500€. Ratio x40+.”,red_flags:“Estimation très haute, vérifier réalité marché.”,url:“https://monsantic.com/en/lots/125/0080-tableau-hst-le-coquillage-rose-signe-ransy-jean”,img:“https://monsantic.com/images/thumblist/125/0080.jpg”},
+{platform:“2ememain.be”,location:“bruxelles”,price:200,title:“De Rakowsky Mecislas – Grand-Place Bruxelles 1933 – MONSANTIC”,desc:“HSC Marché aux fleurs Grand-Place Bruxelles, daté 1933, signé De Rakowsky Mecislas.”,artiste:“✅ Répertorié — Mecislas De Rakowsky (1887–1947), peintre belge-polonais”,estimated:“600–1000€”,potential:“exceptionnel”,confidence:90,reason:“Estimation officielle Monsantic 600–1000€.”,red_flags:“Lot en vente à Monsantic.”,url:“https://monsantic.com/en/lots/125/0062-tableau-hsc-marche-aux-fleurs-grand-place-bruxelles-date-1933-signe-de-rakowsky-mecislas”,img:“https://monsantic.com/images/thumblist/125/0062.jpg”},
+{platform:“2ememain.be”,location:“mons”,price:300,title:“Fernand Gommaerts (1895-1975) – Bonaparte au pont d’Arcole – MONSANTIC”,desc:“HST Bonaparte au pont d’Arcole, signé Fernand Gommaerts. 150×111cm.”,artiste:“✅ Répertorié — Fernand Gommaerts (1895–1975), peintre académique belge”,estimated:“600–800€”,potential:“élevé”,confidence:87,reason:“Estimation Monsantic 600–800€.”,red_flags:“Grand tableau — transport délicat.”,url:“https://monsantic.com/en/lots/125/0075-tableau-hst-bonaparte-au-pont-darcole-signe-gommaerts-fernand”,img:“https://monsantic.com/images/thumblist/125/0075.jpg”},
+{platform:“2ememain.be”,location:“mons”,price:200,title:“Jean Van Leda (1926) – Les Brigittines – HST 70×80cm – MONSANTIC”,desc:“HST Les Brigittines signé Jean Van Leda (1926). 70×80cm.”,artiste:“✅ Répertorié — Jean Van Leda (°1926), peintre belge”,estimated:“700–1200€”,potential:“exceptionnel”,confidence:88,reason:“Estimation officielle Monsantic 700–1200€.”,red_flags:“Lot en vente à Monsantic.”,url:“https://monsantic.com/en/lots/125/0146-tableau-hst-les-brigittines-signe-van-leda-jean”,img:“https://monsantic.com/images/thumblist/125/0146.jpg”},
+{platform:“2ememain.be”,location:“mons”,price:150,title:“Roger Dudant (1929-2008) – Aquarelle Sans Titre – 55×76cm – MONSANTIC”,desc:“Aquarelle Sans Titre datée 68, signé Roger Dudant (1929-2008).”,artiste:“✅ Répertorié — Roger Dudant (1929–2008), peintre abstrait belge”,estimated:“200–400€”,potential:“élevé”,confidence:87,reason:“Estimation Monsantic 200–400€.”,red_flags:“Lot en vente à Monsantic.”,url:“https://monsantic.com/en/lots/125/0154-tableau-aquarelle-sans-titre-date-68-signe-dudant-roger”,img:“https://monsantic.com/images/thumblist/125/0154.jpg”},
+{platform:“2ememain.be”,location:“mons”,price:60,title:“Nikolaas Mathijs Eekman (1889-1973) – La Chenille – Dessin encre – MONSANTIC”,desc:“Dessin à l’encre La Chenille signé Nikolaas Mathijs Eekman (1889-1973).”,artiste:“✅ Répertorié — Nikolaas Mathijs Eekman (1889–1973), peintre-illustrateur”,estimated:“300–500€”,potential:“exceptionnel”,confidence:88,reason:“Estimation Monsantic 300–500€. À 60€ = ratio x6.6.”,red_flags:“Lot en vente à Monsantic.”,url:“https://monsantic.com/en/lots/125/0006-tableau-dessin-a-lencre-la-chenille-signe-eekman-nikolaas-mathijs”,img:“https://monsantic.com/images/thumblist/125/0006.jpg”},
+{platform:“2ememain.be”,location:“mons”,price:80,title:“Charles Catteau – Vase Boch Keramis craquelé 1929 – F896 D1263 – MONSANTIC”,desc:“Vase Boch Keramis faïence craquelée ca.1929 Atelier de Fantaisie Catteau Charles.”,artiste:“✅ Majeur — Charles Catteau (1880–1966), designer Boch/Keramis”,estimated:“200–300€”,potential:“élevé”,confidence:93,reason:“Estimation OFFICIELLE Monsantic 200–300€.”,red_flags:“Défauts de cuisson mentionnés.”,url:“https://monsantic.com/en/lots/125/0008-ceramique-vase-boch-keramis-en-faience-craquelee-circa-1929-atelier-de-fantaisie-catteau-charles”,img:“https://monsantic.com/images/thumblist/125/0008.jpg”},
+{platform:“2ememain.be”,location:“mons”,price:50,title:“Charles Catteau – Vase Boch Keramis D876 – fleurs stylisées – MONSANTIC”,desc:“Vase faïence Boch Kéramis Catteau Charles. D876 circa 1924.”,artiste:“✅ Majeur — Charles Catteau (1880–1966), designer Boch/Keramis”,estimated:“100–200€”,potential:“élevé”,confidence:93,reason:“Estimation OFFICIELLE Monsantic 100–200€.”,red_flags:“Estimation réelle modeste.”,url:“https://monsantic.com/en/lots/125/0009-ceramique-vase-en-faience-boch-keramis-cachet-ct-sous-la-base-catteau-charles”,img:“https://monsantic.com/images/thumblist/125/0009.jpg”},
+{platform:“2ememain.be”,location:“mons”,price:40,title:“Charles Catteau – Vase Boch Keramis F627 D681 – Dahlias – MONSANTIC”,desc:“Vase faïence Boch Kéramis circa 1921. F627 D681 décor de dahlias.”,artiste:“✅ Majeur — Charles Catteau (1880–1966), designer Boch/Keramis”,estimated:“100–200€”,potential:“élevé”,confidence:93,reason:“Estimation OFFICIELLE Monsantic 100–200€.”,red_flags:“Source Monsantic.”,url:“https://monsantic.com/en/lots/125/0010-ceramique-vase-en-faience-boch-keramis-adf-atelier-catteau-charles”,img:“https://monsantic.com/images/thumblist/125/0010.jpg”},
+{platform:“2ememain.be”,location:“mons”,price:70,title:“Val Saint-Lambert – Service cristal bicolore Berncastel 1947 – 14 pièces – MONSANTIC”,desc:“Service 14 verres cristal taillé bicolore VSL modèle Berncastel circa 1947.”,artiste:“✅ Majeur — Val Saint-Lambert, cristallerie belge de prestige”,estimated:“200–300€”,potential:“élevé”,confidence:92,reason:“Estimation OFFICIELLE Monsantic 200–300€.”,red_flags:“Ce sont des verres, pas des vases.”,url:“https://monsantic.com/en/lots/125/0035-verrerie-14-partie-de-service-de-verres-en-cristal-taille-bicolore-signe-val-saint-lambert-9pcs-modele-berncastel-circa-1947-5-incolores-non-signe”,img:“https://monsantic.com/images/thumblist/125/0035.jpg”},
+{platform:“2ememain.be”,location:“mons”,price:150,title:“Pendule Empire bronze doré – Mouvement P.D. Paris – MONSANTIC”,desc:“Horloge pendule Empire bronze doré, mouvement rond de Paris P.D. à sonnerie.”,artiste:“Horlogerie Empire XIXe — bronze doré, mouvement P.D. Paris”,estimated:“300–500€”,potential:“élevé”,confidence:92,reason:“Estimation OFFICIELLE Monsantic 300–500€.”,red_flags:“En état — vérifier mécanisme.”,url:“https://monsantic.com/en/lots/125/0002-horlogerie-horloge-pendule-a-poser-empire-en-bronze-dore-mouvement-rond-de-paris-pd-a-sonnerie-fil-de-soie-en-etat”,img:“https://monsantic.com/images/thumblist/125/0002.jpg”},
+{platform:“2ememain.be”,location:“huy”,price:200,title:“Tableau – Fermettes Bokrijk – HST 112×81cm – Huy”,desc:“Grande peinture HST (112×81cm) des fermettes du domaine de Bokrijk, datée 1990.”,artiste:“Peintre belge contemporain — paysage flamand signé avec certificat”,estimated:“300–600€”,potential:“élevé”,confidence:70,reason:“Grand format 112×81cm avec certificat à 200€.”,red_flags:“⚠ Peintre non identifié. Estimated extrapolé.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2386877437-fermettes-du-domaine-de-bokrijk-tableau-original”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/f7885107-1ab0-407b-9854-a22dc72a461b?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruxelles”,price:480,title:“Emile Lammers – Paysage marin – HST 73.5×54cm – Bruxelles”,desc:“Emile Lammers (1914-1990) peintre belge, paysage marin XXème.”,artiste:“Répertorié — Emile Lammers (1914–1990), peintre belge”,estimated:“400–700€”,potential:“moyen”,confidence:65,reason:“Lammers marine format moyen à 480€ — peu de marge de gain.”,red_flags:“⚠ Prix demandé élevé (480€). Marché peu liquide.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2387090938-emile-lammers-peintre-belge-paysage-marin-xxeme”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/352a2535-1761-45c6-a8b5-77eed063e5c8?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:150,title:“Hubert Borguet – Pecheur – HSP 51×41cm – École liégeoise”,desc:“Huile sur panneau pecheur signé Hubert Borguet. 51×41cm. École liégeoise.”,artiste:“Répertorié — École liégeoise — Hubert Borguet (XXe s.)”,estimated:“200–500€”,potential:“élevé”,confidence:72,reason:“Borguet pecheur HSP 51×41 à 150€ = ratio x2.2.”,red_flags:“Aucun résultat enchères documenté.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2385934243-huile-sur-panneau-pecheur-signe-hubert-borguet”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/e257d307-5796-465e-947d-3a0aa0735ffd?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“liege”,price:25,title:“Raymond Bovy – Nature morte jonquilles – HST daté 1960 – Liège”,desc:“Huile de Raymond Bovy, artiste liégeois, datée 1960. Bouquet jonquilles.”,artiste:“Signé — Raymond Bovy, artiste liégeois (1960)”,estimated:“80–200€”,potential:“exceptionnel”,confidence:65,reason:“Bovy jonquilles daté 1960 à 25€ = ratio x4.”,red_flags:“Artiste peu identifié. Marché très local.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2387728109-superbe-nature-morte-bouquet-de-jonquilles-raymond-bovy”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/2181d571-a589-4ca9-99e4-3a5d57090c2c?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“halle”,price:900,title:“Emile Lammers – Grande peinture – HST 120×90cm – Halle”,desc:“Huile sur toile originale Emile Lammers. 120×90cm.”,artiste:“Répertorié — Emile Lammers (1914–1990)”,estimated:“400–900€”,potential:“rejeté”,confidence:55,reason:“Lammers 120×90cm à 900€ = plafond marché. Aucune marge.”,red_flags:“Prix 900€ = estimation haute. Gain nul.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2351399583-peinture-d-emile-lammers”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/38/38b377ac-4baa-47bc-a396-e9eff0ae03c1?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“court-saint-etienne”,price:45,title:“Jean Donnay – Eau-forte Liège 1939 – Court-St-Étienne”,desc:“Véritable eau-forte Jean Donnay Liège 1939. Encadrée.”,artiste:“Coté — Jean Donnay (1897-1992, Cheratte-Liège), graveur et peintre liégeois”,estimated:“150–400€”,potential:“exceptionnel”,confidence:80,reason:“Donnay eau-forte signée 1939 à 45€ = ratio x4.5.”,red_flags:“Accident cadre à signaler.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2337592582-gravure-eau-forte-jean-donnay-liege-1939-art-peintre”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/98/98d506b1-53b8-4f16-ad1a-c161cd47708e?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“malonne”,price:700,title:“Alain Denis (école Liège) – Pastel post-cubiste 1979 – Malonne”,desc:“Rare pastel original Alain Denis (école de Liège), signé et daté 1979.”,artiste:“Attesté — Alain Denis (né 1945, Liège), peintre et professeur liégeois”,estimated:“800–2000€”,potential:“élevé”,confidence:72,reason:“Denis pastel 1979 daté signé à 700€.”,red_flags:“Prix demandé 700€. Marché niche.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2385476435-tableau-pastel-du-peintre-liegeois-alain-denis”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/21a54e50-8c13-48c6-b301-52d572c8653c?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bornem”,price:80,title:“Henri Joseph Pauwels (1903-1983) – Peinture classique – Bornem”,desc:“Peinture signée Henri Joseph Pauwels. Enlèvement Bornem.”,artiste:“Coté vérifié — Henri Joseph Pauwels (1903-1983), peintre belge ~110€/12mois”,estimated:“150–350€”,potential:“exceptionnel”,confidence:75,reason:“Pauwels classique à 80€ = ratio x2.5.”,red_flags:“Format et sujet inconnus.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2381575777-peinture-classique-d-henri-joseph-pauwels”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/4056d3ce-e069-4dbc-8a3b-efb9c7cd5455?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“overijse”,price:175,title:“Henri Joseph Pauwels – Église Vlassenbroek – Overijse”,desc:“Église de Vlassenbroek par Henri Joseph Pauwels (1903-1983).”,artiste:“Coté vérifié — Henri Joseph Pauwels (1903-1983), peintre belge ~110€/12mois”,estimated:“200–450€”,potential:“élevé”,confidence:72,reason:“Pauwels Vlassenbroek à 175€.”,red_flags:“Cote vérifiée MutualArt ~110€. Prix demandé élevé.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2369605175-eglise-de-vlassenbroek-par-joseph-henri-pauwels”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/10/105c17f4-3fd1-47e0-99b9-d2c730bc0459?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:375,title:“José Wolff – Fleurs – Huile sur papier maroufle – 90×70cm”,desc:“Huile sur papier maroufle 90×70cm. José Wolff (Liège 1885-1964).”,artiste:“Répertorié — José Wolff (Liège 1885-1964), peintre belge École liégeoise”,estimated:“600–1200€”,potential:“élevé”,confidence:73,reason:“Wolff nature morte fleurs 90×70cm à 375€.”,red_flags:“Prix élevé. Estimated extrapolé.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2363918295-huile-sur-papier-maroufle-fleurs-signe-jose-wolff”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/e6/e6321bb4-d61d-403c-a7eb-71ff09451eef?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:175,title:“José Wolff – Aquarelle village – 54×39cm”,desc:“Aquarelle village signée José Wolff. 54×39cm.”,artiste:“Répertorié — José Wolff (Liège 1885-1964), peintre belge École liégeoise”,estimated:“400–800€”,potential:“exceptionnel”,confidence:78,reason:“Wolff aquarelle village 175€ = ratio x3+.”,red_flags:“Marché très local liégeois.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2359097136-aquarelle-village-signe-jose-wolff”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/d5/d5b4de34-004c-4680-a476-7c10726876a8?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:375,title:“José Wolff – Maternité – HST monogramme – 48×38cm”,desc:“HST 48×38cm. Maternité monogrammée JW. José Wolff (Liège 1885-1964).”,artiste:“Répertorié — José Wolff (Liège 1885-1964), peintre belge École liégeoise”,estimated:“700–1400€”,potential:“élevé”,confidence:75,reason:“Wolff Maternité HST sujet rare à 375€.”,red_flags:“Monogramme JW à vérifier physiquement.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2367664375-huile-sur-toile-maternite-monograme-jose-wolff”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/b9/b96718f3-a004-47be-aad5-9fe00a359946?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:375,title:“José Wolff – Paysage ardennais – HSP 39.5×30cm”,desc:“HSP 39.5×30cm. Paysage ardennais signé José Wolff.”,artiste:“Répertorié — José Wolff (Liège 1885-1964), peintre belge École liégeoise”,estimated:“500–1000€”,potential:“élevé”,confidence:72,reason:“Wolff paysage ardennais HSP à 375€.”,red_flags:“Prix élevé pour format moyen.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2379332718-huile-sur-panneau-paysage-ardenais-signe-jose-wolff”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/1fed4644-d998-4316-bb95-8d8e6196e87a?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“antwerpen”,price:12,title:“Geo Warzée – Gravure bister Vue panoramique de Huy – Signé”,desc:“Eau-forte de Geo Warzée. Signée au crayon, titrée Huy.”,artiste:“Répertorié — Geo Warzée, graveur wallon actif XIXe–XXe”,estimated:“60–150€”,potential:“exceptionnel”,confidence:72,reason:“Warzée gravure bister à 12€ = ratio x7+.”,red_flags:“Artiste peu connu hors Wallonie.”,url:“https://www.2ememain.be/v/antiquites-art/art-eaux-fortes-gravures/m2380865595-gravure-de-geo-warzee-au-bister-vue-panoramique-de-huy”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/eb16d590-9ac6-4441-8695-d8386bf1b0ae?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“antwerpen”,price:12,title:“Geo Warzée – Gravure Huy sur Meuse – Signée crayon”,desc:“Gravure de Geo Warzée. Signée crayon, titrée Huy sur Meuse.”,artiste:“Répertorié — Geo Warzée, graveur wallon actif XIXe–XXe”,estimated:“60–150€”,potential:“exceptionnel”,confidence:70,reason:“Warzée Huy sur Meuse à 12€ = ratio x7+.”,red_flags:“Même vendeur que panoramique Huy.”,url:“https://www.2ememain.be/v/antiquites-art/art-eaux-fortes-gravures/m2380912071-gravure-de-geo-warzee-dans-le-blister-huy-sur-meuse”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/5bdded3b-f63b-4c5a-bbab-69a5de6dd3ee?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“hamme”,price:250,title:“Jean-Baptiste Scoriel (1883-1956) – Landschap – 80×53cm – Hamme”,desc:“Peinture de Jean-Baptiste Scoriel (Lambusart 1883 – Tamines 1956). 80×53cm.”,artiste:“Répertorié — J-B Scoriel (1883-1956), peintre belge ardennais”,estimated:“400–800€”,potential:“élevé”,confidence:74,reason:“Scoriel Landschap 80×53cm à 250€. Artiste répertorié.”,red_flags:“Marché belge local.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2112630265-jean-baptiste-scoriel-1883-1956-landschap-80-x-53-cm”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/c5/c599da9e-790b-48bc-a040-d56c09d4cb44?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“châtelineau”,price:150,title:“Henri Poppe – Village – HSP 46×36cm – Élève de Scoriel”,desc:“HSP 46×36cm. Henri Poppe (?-1970), peintre, élève de Scoriel.”,artiste:“Répertorié — Henri Poppe (?-1970), peintre belge élève de Scoriel”,estimated:“250–500€”,potential:“élevé”,confidence:68,reason:“Poppe élève Scoriel HSP village à 150€.”,red_flags:“Artiste élève. Marché très restreint.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2357529877-huile-sur-panneau-village-signe-henri-poppe”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/60/6057a82c-8941-4f0e-b9d0-0998b83f22bf?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“malonne”,price:30,title:“Albert Raty par Suzanne Raty – Livre biographique – Namur”,desc:“Livre très complet sur Albert Raty par Suzanne Raty, éd. Duculot 1987.”,artiste:“Référence — Monographie Albert Raty (1889-1970), peintre wallon”,estimated:“50–100€”,potential:“moyen”,confidence:60,reason:“Monographie Raty à 30€. Utile pour expertise.”,red_flags:“C’est un livre, pas un tableau.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2338995686-albert-raty-par-suzanne-raty”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/02/02b70525-038d-4e8d-9e67-ca001fa8398f?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:125,title:“Marie Howet – Aquarelle montagne – 39×29cm”,desc:“Aquarelle montagne signée Marie Howet, taches. 39×29cm.”,artiste:“Répertoriée – Marie Howet (Libramont 1897 – Rochehaut 1984), peintre ardennaise”,estimated:“300–600€”,potential:“exceptionnel”,confidence:80,reason:“Howet aquarelle montagne à 125€ = ratio x3+.”,red_flags:“Taches signalées - vérifier photos.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2387274685-aquarelle-montagne-signe-marie-howet”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/e571aff1-3384-4967-be2e-9955ebde8778?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:75,title:“Marie Howet – Lithographie Marie Cécile – 36/100 – 43.5×35cm”,desc:“Lithographie Marie Cécile signée Marie Howet. 36/100.”,artiste:“Répertoriée – Marie Howet (Libramont 1897 – Rochehaut 1984), peintre ardennaise”,estimated:“200–400€”,potential:“exceptionnel”,confidence:78,reason:“Howet litho numérotée 36/100 à 75€.”,red_flags:“Petite tache dans le passe-partout.”,url:“https://www.2ememain.be/v/antiquites-art/art-lithographies-serigraphies/m2357842059-lithographie-marie-cecile-signe-marie-howet”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/77/77bdebd9-9f90-4268-8e7e-73751494785d?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:325,title:“Marie Howet – Fermette – HST 45×40.5cm”,desc:“HST 45×40.5cm. Éclat sur encadrement. Marie Howet (Libramont 1897 – Rochehaut 1984).”,artiste:“Répertoriée – Marie Howet (Libramont 1897 – Rochehaut 1984), peintre ardennaise”,estimated:“600–1200€”,potential:“élevé”,confidence:75,reason:“Howet fermette HST à 325€.”,red_flags:“Éclat sur encadrement à vérifier.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2376290461-huile-sur-toile-fermette-signe-marie-howet”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/a30fce0e-7cd9-4fed-af3d-fa18b8a25e72?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“frameries”,price:325,title:“Marie Howet – Huile sur panneau – 70×53cm”,desc:“HSP 70×53cm. Marie Howet (Libramont 1897 – Rochehaut 1984).”,artiste:“Répertoriée – Marie Howet (Libramont 1897 – Rochehaut 1984), peintre ardennaise”,estimated:“700–1400€”,potential:“élevé”,confidence:76,reason:“Howet grand HSP 70×53cm à 325€.”,red_flags:“Prix 325€. Marché régional.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2379340845-huile-sur-panneau-signe-marie-howet”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/40382521-4de5-4ab0-b60f-0f6cf8158d9f?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“tubize”,price:250,title:“Willy Meurisse (né 1938) – Tableau – Tubize”,desc:“Tableau du peintre belge Willy Meurisse (né en 1938). 10 ventes publiques.”,artiste:“Attesté – Willy Meurisse (né 1938), peintre belge, 10 ventes publiques”,estimated:“300–600€”,potential:“moyen”,confidence:62,reason:“Meurisse 10 enchères publiques à 250€.”,red_flags:“Artiste vivant = valeur incertaine.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2179848115-tableau-peinture-sur-toile”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/25/25987afa-8403-4654-8a15-b111f8949e4e?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“spa”,price:150,title:“Hubert Borguet – Danseuse espagnole – HSP 27×20cm – École liégeoise”,desc:“Huile sur panneau danseuse espagnole signé Hubert Borguet (École liégeoise). 27×20cm.”,artiste:“✅ Répertorié — Hubert Borguet, école liégeoise”,estimated:“700–1400€”,potential:“exceptionnel”,confidence:84,reason:“Borguet école liégeoise, sujet rare (danseuse espagnole). HSP 27×20cm à 150€ = ratio x6.”,red_flags:“🚨 Aucun résultat d’enchères documenté. Valeur marché non vérifiable.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2386166445-huile-sur-panneau-danseuse-espagnole-signe-hubert-borguet”,img:“https://cdn.2dehands.com/api/v1/listing-twh-p/images/532748d3-8428-4d8f-894b-d3d5237307f8?rule=ecg_mp_eps$_82”},
+{platform:“2ememain.be”,location:“bruges”,price:350,title:“Aristova – Bruges en hiver – 50×70cm”,desc:“Peinture à l’huile Bruges en hiver enneigé, 50×70cm. Signé Aristova avec certificat.”,artiste:“Connu — Aristova, peintre ukrainien avec certificat”,estimated:“500–800€”,potential:“élevé”,confidence:72,reason:“Bruges hivernal avec certificat à 350€.”,red_flags:“Artiste contemporain — vérifier marché de revente.”,url:“https://www.2ememain.be/v/antiquites-art/art-peinture-classique/m2388972081-peinture-a-l-huile-bruges-en-hiver-50x70cm”,img:“https://images.2dehands.com/api/v1/listing-twh-p/images/197deef1-5457-4830-8b8a-f0aeec42b275?rule=ecg_mp_eps$_82”},
+];
+
+const REPORTS = {
+“https://www.2ememain.be/v/antiquites-art/art-eaux-fortes-gravures/m2380865595-gravure-de-geo-warzee-au-bister-vue-panoramique-de-huy”: {
+generatedAt: “20 avril 2026”,
+analyst: “Claude (Anthropic) — expertise art belge”,
+mapUrl: “https://maps.google.com/?q=Huy,Belgium”,
+sellerMapUrl: “https://maps.google.com/?q=Antwerpen,Belgium”,
+content: `## 🎯 Synthèse
+**Verdict : ACHETER.** À 12€ pour une eau-forte signée au crayon d’un artiste wallon dont les œuvres figurent dans les collections du Musée de Huy et de la collection royale belge, le risque est quasi nul. La revente à 60–120€ sur Catawiki est réaliste, soit un ROI potentiel de +400%.
+
+## 🎨 L’artiste — Géo Warzée (Huy 1902 – Wanze 1973)
+
+Artiste wallon aux multiples talents : peintre, graveur, musicien, auteur. Il commence le dessin à 13 ans, influencé par François Millet. Après avoir travaillé dans une usine de Seraing puis comme peintre en bâtiment, il rejoint l’Académie de Liège où il étudie avec **François Maréchal** et **Jacques Ochs**, fortement influencé par **Albert Raty**.
+
+Il expose pour la première fois au **Palais des Beaux-Arts de Bruxelles en 1929** avec des critiques élogieuses. Il est réputé pour ses eaux-fortes — paysages ardennais et mosans — et fonde le cercle culturel **“Le Cwerneu”** à Huy.
+
+**Présence muséale documentée :**
+
+- Musée de Huy : ~50 œuvres (don de son épouse et son fils)
+- Collection royale belge
+- Collections privées en Europe, Japon, États-Unis, Canada
+
+Source : [Fondation Chaidron-Guisset](https://www.fondation-chaidron.be/page/geo-warzee.html)
+
+## 🖼️ L’œuvre
+
+**Technique :** Eau-forte au bister sur papier fait main
+**Dimensions :** Feuille 21×28,5 cm · Planche 14×21 cm
+**Signature :** Signée au crayon (coin inférieur droit) — authentification forte
+**État :** Bon état, légères traces d’usure normales
+**Sujet :** Vue panoramique de Huy, ville natale de l’artiste — sujet emblématique de son œuvre gravé
+
+## 💰 Analyse financière
+
+Aucun résultat d’enchères internationales trouvé (Artprice, Arcadja, Invaluable). Marché purement belge/wallon.
+
+**Estimations réalistes :**
+
+- Pessimiste : 30–50€ (3–6 mois, 2ememain)
+- Probable : 60–100€ (1–3 mois, Catawiki)
+- Optimiste : 100–150€ (6–12 mois, galerie art wallon)
+
+**ROI au scénario probable :** +433% (75€ revente → ~52€ net après commission 15%)
+
+**Conseil :** Acheter la paire avec “Huy sur Meuse” (m2380912071, 12€) — une paire se revend mieux que deux pièces séparées.
+
+## ✅ Raisons d’acheter
+
+- Prix dérisoire (12€) pour une œuvre signée avec présence muséale documentée
+- Signature au crayon = garantie d’authenticité (pratique standard des aquafortistes belges)
+- Papier fait main = tirage de qualité atelier
+- Sujet emblématique : Huy est le sujet de cœur de Warzée
+- Risque maximal : 18€ (12€ + 6€ envoi)
+
+## ⚠️ Risques et vigilance
+
+- Pas de cotes internationales — liquidité lente, marché local uniquement
+- Non encadrée — demander photos en lumière rasante pour vérifier l’état du papier
+- “Légères traces d’usure” — à préciser avec le vendeur
+- Tirage inconnu — pas de numérotation visible
+
+## 📦 Modalités pratiques
+
+**Vendeur :** doctore — 13 ans sur 2ememain, Anvers
+**Envoi :** bpost L3 ~6€ — préciser “œuvre d’art, ne pas plier”
+**Enlèvement :** Possible à Anvers
+**Négociation :** Inutile à 12€ — ne pas proposer moins de 10€
+
+**Questions à poser :**
+
+- “Photos en lumière rasante possibles ?”
+- “Pliures, taches ou rousseurs sur le papier ?”
+- “Numéro de tirage au dos ou en bas de planche ?”`
+  }
+  };
+
+const GEOCODE = {
+frameries:[50.4080,3.8984],bornem:[51.0983,4.2438],
+anvers:[51.2194,4.4025],antwerpen:[51.2194,4.4025],
+malonne:[50.4430,4.8640],hamme:[51.0978,4.1358],
+bruxelles:[50.8503,4.3517],brussels:[50.8503,4.3517],
+“liège”:[50.6292,5.5796],liege:[50.6292,5.5796],
+overijse:[50.7727,4.5368],gembloux:[50.5615,4.6917],
+leuven:[50.8798,4.7005],fauvillers:[49.8908,5.6833],
+tubize:[50.6921,4.2026],halle:[50.7344,4.2336],
+kasterlee:[51.2403,4.9717],anderlecht:[50.8361,4.3019],
+brasschaat:[51.2948,4.4928],mons:[50.4542,3.9524],
+torhout:[51.0658,3.1017],brugge:[51.2093,3.2247],
+bruges:[51.2093,3.2247],namur:[50.4669,4.8674],
+huy:[50.5218,5.2378],“la louvière”:[50.4782,4.1893],
+“la louviere”:[50.4782,4.1893],waremme:[50.6975,5.2581],
+soumagne:[50.6142,5.7469],etterbeek:[50.8353,4.3926],
+glain:[50.6292,5.5600],awans:[50.6667,5.4667],
+“grace-berleur”:[50.6667,5.5167],oostende:[51.2295,2.9178],
+haacht:[50.9747,4.6336],bonheiden:[51.0167,4.5333],
+charleroi:[50.4108,4.4446],“châtelineau”:[50.4167,4.5167],
+chatelineau:[50.4167,4.5167],seraing:[50.6012,5.5005],
+“saint-nicolas”:[50.6333,5.5500],balen:[51.1667,5.1833],
+oupeye:[50.7167,5.6667],herstal:[50.6667,5.6333],
+wanze:[50.5167,5.2167],stoumont:[50.4000,5.8833],
+diegem:[50.9000,4.4333],tervuren:[50.8217,4.5217],
+mechelen:[51.0281,4.4803],ronse:[50.7500,3.6000],
+hasselt:[50.9311,5.3378],ghent:[51.0543,3.7174],
+gand:[51.0543,3.7174],kortrijk:[50.8281,3.2647],
+waregem:[50.8833,3.4167],quaregnon:[50.4333,3.8667],
+“court-saint-etienne”:[50.5763,4.5694],
+uccle:[50.7985,4.3597],spa:[50.4913,5.8664],
+“saint-nicolas”:[50.6333,5.5500],
+};
+
+const DATA_VERSION = “2026-04-20.v1”;
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 1 — ALGORITHME DE SCORING
+// ═══════════════════════════════════════════════════════════════
+function parseEst(str) {
+const m = str && str.match(/(\d+)[–-](\d+)/);
+if (m) return { low: +m[1], high: +m[2] };
+const s = str && str.match(/(\d+)/);
+if (s) return { low: +s[1], high: +s[1] };
+return { low: 0, high: 0 };
+}
+
+function scoreEntry(o) {
+const { low, high } = parseEst(o.estimated);
+const mid   = (low + high) / 2;
+const ratio = o.price > 0 ? mid / o.price : 0;
+const c     = (o.confidence || 50) / 100;
+return ratio * (mid - o.price) * c * c;
+}
+
+function catEntry(o) {
+const { low, high } = parseEst(o.estimated);
+const mid   = (low + high) / 2;
+const gain  = mid - o.price;
+const ratio = o.price > 0 ? mid / o.price : 0;
+const c     = o.confidence || 50;
+if (ratio >= 4 && gain >= 200 && c >= 82 && o.potential === “exceptionnel”) return “exceptionnel”;
+if (ratio >= 2 && gain >= 100 && c >= 70) return “élevé”;
+if (ratio >= 1.5 && c >= 55) return “moyen”;
+return “rejeté”;
+}
+
+function scoreColor(o) {
+const c = catEntry(o);
+if (c === “exceptionnel”) return “#16a34a”;
+if (c === “élevé”)        return “#2563eb”;
+if (c === “moyen”)        return “#d97706”;
+return “#ef4444”;
+}
+
+function pointRadius(price) {
+return 8 + (Math.min(Math.max(price, 20), 500) - 20) / 480 * 18;
+}
+
+const CAT_COLOR = { exceptionnel:”#16a34a”,“élevé”:”#2563eb”,moyen:”#d97706”,“rejeté”:”#9ca3af” };
+const CAT_BG    = { exceptionnel:”#f0fdf4”,“élevé”:”#eff6ff”,moyen:”#fffbeb”,“rejeté”:”#f9fafb” };
+const CAT_LABEL = { exceptionnel:“🏆 EXCEPTIONNEL”,“élevé”:“🔵 ÉLEVÉ”,moyen:“🟡 MOYEN”,“rejeté”:“⚫ REJETÉ” };
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 2 — CARTE LEAFLET / OPENSTREETMAP
+// ═══════════════════════════════════════════════════════════════
+
+// Injecte Leaflet CSS + JS une seule fois
+function useLeaflet(onReady) {
+useEffect(() => {
+if (window.L) { onReady(); return; }
+// CSS
+if (!document.getElementById(“leaflet-css”)) {
+const link = document.createElement(“link”);
+link.id   = “leaflet-css”;
+link.rel  = “stylesheet”;
+link.href = “https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css”;
+document.head.appendChild(link);
+}
+// JS
+const script = document.createElement(“script”);
+script.src = “https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js”;
+script.onload = onReady;
+document.head.appendChild(script);
+}, []);
+}
+
+function MapView({ pool, onOpenReport }) {
+const mapRef     = useRef(null);   // DOM container
+const leafletRef = useRef(null);   // L.map instance
+const markersRef = useRef([]);     // L.circleMarker[]
+const popupRef   = useRef(null);   // active popup DOM node
+const [ready, setReady] = useState(!!window.L);
+const [selectedUrl, setSelectedUrl] = useState(null);
+
+// ── 1. Charge Leaflet ──────────────────────────────────────
+useLeaflet(() => setReady(true));
+
+// ── 2. Init carte une fois Leaflet prêt ───────────────────
+useEffect(() => {
+if (!ready || !mapRef.current || leafletRef.current) return;
+const L = window.L;
+
+```
+const map = L.map(mapRef.current, {
+  center: [50.50, 4.47],
+  zoom: 8,
+  zoomControl: true,
+});
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+  maxZoom: 19,
+}).addTo(map);
+
+leafletRef.current = map;
+```
+
+}, [ready]);
+
+// ── 3. Synchronise les marqueurs quand pool change ─────────
+useEffect(() => {
+if (!ready || !leafletRef.current) return;
+const L   = window.L;
+const map = leafletRef.current;
+
+```
+// Nettoyer anciens marqueurs
+markersRef.current.forEach(m => map.removeLayer(m));
+markersRef.current = [];
+
+const points = pool.filter(o => o.location && GEOCODE[o.location]);
+
+points.forEach(o => {
+  const [lat, lng] = GEOCODE[o.location];
+  const color      = scoreColor(o);
+  const hasRep     = !!REPORTS[o.url];
+  const r          = 8 + (Math.min(Math.max(o.price, 20), 500) - 20) / 480 * 14;
+
+  const { low, high } = parseEst(o.estimated);
+  const mid   = (low + high) / 2;
+  const gain  = Math.round(mid - o.price);
+  const ratio = o.price > 0 ? (mid / o.price).toFixed(1) : "—";
+
+  const marker = L.circleMarker([lat, lng], {
+    radius:      r,
+    fillColor:   color,
+    fillOpacity: 0.88,
+    color:       "#fff",
+    weight:      2,
+  });
+
+  // Popup HTML
+  const imgTag = o.img
+    ? `<img src="${o.img}" onerror="this.style.display='none'" style="width:100%;height:72px;object-fit:cover;display:block;border-radius:6px 6px 0 0;"/>`
+    : "";
+  const starTag = hasRep ? `<span style="background:#f0fdf4;color:#16a34a;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;border:1px solid #bbf7d0">★ Rapport dispo</span>` : "";
+
+  const popupHtml = `
+    <div style="width:220px;font-family:system-ui,sans-serif;border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.18)">
+      ${imgTag}
+      <div style="padding:10px 12px">
+        <div style="font-size:11px;font-weight:700;color:#0f172a;line-height:1.35;margin-bottom:5px">${o.title}</div>
+        <div style="font-size:10px;color:#64748b;margin-bottom:6px">📍 ${o.location?.charAt(0).toUpperCase()}${o.location?.slice(1)}</div>
+        ${starTag ? `<div style="margin-bottom:6px">${starTag}</div>` : ""}
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px">
+          <div style="background:#f8fafc;border-radius:6px;padding:4px;text-align:center">
+            <div style="font-size:8px;color:#9ca3af;text-transform:uppercase">Prix</div>
+            <div style="font-size:11px;font-weight:700;color:#374151">${o.price}€</div>
+          </div>
+          <div style="background:#f8fafc;border-radius:6px;padding:4px;text-align:center">
+            <div style="font-size:8px;color:#9ca3af;text-transform:uppercase">Estimé</div>
+            <div style="font-size:10px;font-weight:700;color:${color}">${o.estimated}</div>
+          </div>
+          <div style="background:#f8fafc;border-radius:6px;padding:4px;text-align:center">
+            <div style="font-size:8px;color:#9ca3af;text-transform:uppercase">Gain</div>
+            <div style="font-size:11px;font-weight:700;color:#16a34a">${gain > 0 ? `+${gain}€` : "—"}</div>
+          </div>
+        </div>
+        <div style="font-size:10px;color:#374151;background:#f8fafc;border-left:3px solid ${color};padding:5px 7px;border-radius:0 6px 6px 0;margin-bottom:8px;line-height:1.4">${o.reason || ""}</div>
+        <div style="display:flex;gap:5px">
+          <a href="${o.url}" target="_blank" rel="noopener noreferrer"
+            style="flex:1;background:${color};color:#fff;border-radius:6px;padding:6px;text-align:center;font-size:10px;font-weight:700;text-decoration:none;display:block">
+            Voir l'annonce →
+          </a>
+          ${hasRep ? `<button data-url="${o.url}" class="map-report-btn"
+            style="flex:1;background:#0f172a;color:#fff;border:none;border-radius:6px;padding:6px;font-size:10px;font-weight:700;cursor:pointer">
+            📋 Rapport
+          </button>` : ""}
+        </div>
+      </div>
+    </div>`;
+
+  marker.bindPopup(popupHtml, {
+    maxWidth: 240,
+    minWidth: 220,
+    className: "chasseur-popup",
+    closeButton: true,
+  });
+
+  // Bouton rapport dans le popup
+  marker.on("popupopen", () => {
+    setTimeout(() => {
+      const btn = document.querySelector(`.leaflet-popup .map-report-btn[data-url="${o.url}"]`);
+      if (btn) btn.onclick = () => { onOpenReport(o); };
+    }, 50);
+  });
+
+  marker.addTo(map);
+  markersRef.current.push(marker);
+});
+```
+
+}, [ready, pool, onOpenReport]);
+
+// ── 4. Stats barre ────────────────────────────────────────
+const points = pool.filter(o => o.location && GEOCODE[o.location]);
+
+return (
+<div>
+{/* Leaflet CSS override pour le popup */}
+<style>{`.chasseur-popup .leaflet-popup-content-wrapper { padding: 0 !important; border-radius: 10px !important; overflow: hidden !important; box-shadow: 0 8px 32px rgba(0,0,0,0.22) !important; border: none !important; } .chasseur-popup .leaflet-popup-content { margin: 0 !important; width: auto !important; } .chasseur-popup .leaflet-popup-tip-container { display: none; } .leaflet-control-zoom a { font-size: 16px !important; font-weight: 700 !important; }`}</style>
+
+```
+  {/* Stats barre */}
+  <div style={{display:"flex",gap:8,marginBottom:10,flexWrap:"wrap",alignItems:"center"}}>
+    <span style={{fontSize:11,color:"#64748b"}}>
+      <b style={{color:"#f1f5f9"}}>{points.length}</b> annonces géolocalisées sur {pool.length}
+    </span>
+    {["exceptionnel","élevé","moyen"].map(cat => {
+      const n = points.filter(o => catEntry(o) === cat).length;
+      return n > 0 ? (
+        <span key={cat} style={{fontSize:10,fontWeight:700,color:CAT_COLOR[cat],background:CAT_COLOR[cat]+"18",padding:"2px 8px",borderRadius:10}}>
+          {cat.charAt(0).toUpperCase()+cat.slice(1)}: {n}
+        </span>
+      ) : null;
+    })}
+    <span style={{marginLeft:"auto",fontSize:10,color:"#475569"}}>Clic sur un point · Zoom molette · Glisser</span>
+  </div>
+
+  {/* Conteneur carte */}
+  <div style={{borderRadius:12,overflow:"hidden",border:"1px solid #334155",boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
+    {!ready && (
+      <div style={{height:500,display:"flex",alignItems:"center",justifyContent:"center",background:"#1e293b",color:"#64748b",fontSize:13}}>
+        Chargement de la carte…
+      </div>
+    )}
+    <div
+      ref={mapRef}
+      style={{height:500,width:"100%",display:ready?"block":"none"}}
+    />
+  </div>
+
+  {/* Légende */}
+  <div style={{display:"flex",gap:12,marginTop:10,flexWrap:"wrap",alignItems:"center",background:"rgba(15,23,42,0.4)",borderRadius:8,padding:"8px 12px"}}>
+    {[["#16a34a","🏆 Exceptionnel"],["#2563eb","🔵 Élevé"],["#d97706","🟡 Moyen"],["#ef4444","⚫ Rejeté"]].map(([col,label])=>(
+      <div key={col} style={{display:"flex",alignItems:"center",gap:5}}>
+        <div style={{width:10,height:10,borderRadius:"50%",background:col,border:"1.5px solid rgba(255,255,255,0.6)"}}/>
+        <span style={{fontSize:10,color:"#94a3b8"}}>{label}</span>
+      </div>
+    ))}
+    <span style={{fontSize:10,color:"#64748b",marginLeft:"auto"}}>★ rapport · taille = prix · tuiles © OSM</span>
+  </div>
+</div>
+```
+
+);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 3 — RENDU MARKDOWN
+// ═══════════════════════════════════════════════════════════════
+function fmt(t) {
+return t
+.replace(/**([^*]+)**/g,”<strong>$1</strong>”)
+.replace(/*([^*]+)*/g,”<em>$1</em>”)
+.replace(/[([^]]+)](([^)]+))/g,’<a href="$2" target="_blank" style="color:#2563eb;text-decoration:underline;font-weight:600">$1</a>’);
+}
+
+function Markdown({ text }) {
+const lines = text.split(”\n”);
+const out = []; let i = 0;
+while (i < lines.length) {
+const l = lines[i];
+if (l.startsWith(”## “)) {
+out.push(<h2 key={i} style={{fontSize:14,fontWeight:800,color:”#0f172a”,marginTop:20,marginBottom:8,paddingBottom:6,borderBottom:“2px solid #e2e8f0”}}>{l.replace(”## “,””)}</h2>);
+} else if (l.startsWith(”- “)) {
+const items = [];
+while (i < lines.length && lines[i].startsWith(”- “)) { items.push(lines[i].slice(2)); i++; }
+out.push(<ul key={`ul${i}`} style={{paddingLeft:18,margin:“4px 0 10px”}}>{items.map((it,j)=><li key={j} style={{fontSize:12,color:”#374151”,lineHeight:1.7,marginBottom:2}} dangerouslySetInnerHTML={{__html:fmt(it)}}/>)}</ul>);
+continue;
+} else if (l.trim() !== “”) {
+out.push(<p key={i} style={{fontSize:12,color:”#374151”,lineHeight:1.7,marginBottom:6}} dangerouslySetInnerHTML={{__html:fmt(l)}}/>);
+}
+i++;
+}
+return <div>{out}</div>;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 4 — EXPORT RAPPORT HTML
+// ═══════════════════════════════════════════════════════════════
+function exportReport(o, report) {
+const { low, high } = parseEst(o.estimated);
+const mid   = (low+high)/2;
+const gain  = Math.round(mid - o.price);
+const ratio = o.price > 0 ? (mid/o.price).toFixed(1) : “—”;
+const color = scoreColor(o);
+const html  = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Rapport — ${o.title}</title>
+
+<style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;color:#1e293b;line-height:1.7}h1{font-size:22px;border-bottom:3px solid ${color};padding-bottom:10px}h2{font-size:15px;margin-top:24px;border-bottom:1px solid #e2e8f0;padding-bottom:4px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}.metric{background:${color}11;border:1px solid ${color}33;border-radius:8px;padding:10px;text-align:center}.metric-l{font-size:10px;color:#64748b;text-transform:uppercase}.metric-v{font-size:18px;font-weight:bold;color:${color};margin-top:4px}p{font-size:13px;margin-bottom:8px}ul{padding-left:20px}li{font-size:13px;margin-bottom:4px}a{color:#2563eb}.footer{margin-top:40px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:12px}img{max-width:200px;border-radius:8px;float:right;margin:0 0 12px 16px}</style></head><body>
+
+<h1>🎯 Rapport d'Opportunité</h1>
+<div style="background:#f8fafc;padding:14px;border-radius:8px;margin:16px 0;font-size:12px"><strong>${o.title}</strong><br/><span style="color:#64748b">Analysé le ${report.generatedAt} · ${report.analyst}</span><br/><a href="${o.url}">${o.url}</a></div>
+${o.img?`<img src="${o.img}" alt=""/>`:""}
+<div class="metrics"><div class="metric"><div class="metric-l">Prix</div><div class="metric-v">${o.price}€</div></div><div class="metric"><div class="metric-l">Estimé</div><div class="metric-v">${o.estimated}</div></div><div class="metric"><div class="metric-l">Gain</div><div class="metric-v">+${gain}€</div></div><div class="metric"><div class="metric-l">Ratio</div><div class="metric-v">×${ratio}</div></div></div>
+${report.content.replace(/## (.+)/g,"<h2>$1</h2>").replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>").replace(/\*([^*]+)\*/g,"<em>$1</em>").replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>').replace(/^- (.+)$/gm,"<li>$1</li>").split("\n").map(l=>l.startsWith("<")?l:l?`<p>${l}</p>`:"").join("\n")}
+<div class="footer">Chasseur d'Opportunités · Claude (Anthropic) · Estimations indicatives<br/><a href="${report.mapUrl}">Carte ville artiste</a> · <a href="${report.sellerMapUrl}">Carte vendeur</a></div></body></html>`;
+  const a = Object.assign(document.createElement("a"),{
+    href: URL.createObjectURL(new Blob([html],{type:"text/html;charset=utf-8"})),
+    download: `rapport-${o.title.slice(0,40).replace(/[^a-z0-9]/gi,"-").toLowerCase()}.html`,
+  });
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 5 — MODAL RAPPORT
+// ═══════════════════════════════════════════════════════════════
+function ReportModal({ o, onClose }) {
+const report = REPORTS[o.url];
+const color  = scoreColor(o);
+const { low, high } = parseEst(o.estimated);
+const mid   = (low+high)/2;
+const gain  = Math.round(mid - o.price);
+const ratio = o.price > 0 ? (mid/o.price).toFixed(1) : “—”;
+
+useEffect(() => {
+const h = e => { if (e.key === “Escape”) onClose(); };
+window.addEventListener(“keydown”, h);
+return () => window.removeEventListener(“keydown”, h);
+}, [onClose]);
+
+return (
+<div onClick={e=>e.target===e.currentTarget&&onClose()}
+style={{position:“fixed”,inset:0,zIndex:1000,background:“rgba(0,0,0,0.75)”,backdropFilter:“blur(4px)”,display:“flex”,alignItems:“flex-start”,justifyContent:“center”,padding:“20px 12px”,overflowY:“auto”}}>
+<div style={{background:”#fff”,borderRadius:16,width:“100%”,maxWidth:680,boxShadow:“0 24px 64px rgba(0,0,0,0.4)”,overflow:“hidden”,marginTop:10}}>
+<div style={{background:`linear-gradient(135deg,${color}18,${color}05)`,borderBottom:`3px solid ${color}`,padding:“16px 20px”}}>
+<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“flex-start”,gap:12}}>
+<div style={{flex:1}}>
+<div style={{display:“flex”,gap:6,marginBottom:6,flexWrap:“wrap”}}>
+<span style={{fontSize:10,fontWeight:700,color:”#fff”,background:”#e55b2b”,padding:“2px 7px”,borderRadius:6}}>2ememain</span>
+<span style={{fontSize:10,fontWeight:700,color:color,background:color+“22”,padding:“2px 7px”,borderRadius:6}}>{CAT_LABEL[catEntry(o)]}</span>
+{report && <span style={{fontSize:10,color:”#16a34a”,background:”#f0fdf4”,padding:“2px 7px”,borderRadius:6,fontWeight:700}}>📋 Rapport expert</span>}
+</div>
+<div style={{fontWeight:800,fontSize:15,color:”#0f172a”,lineHeight:1.3,marginBottom:4}}>{o.title}</div>
+<div style={{fontSize:11,color:”#64748b”}}>{o.artiste}</div>
+</div>
+<button onClick={onClose} style={{background:”#f1f5f9”,border:“none”,borderRadius:8,width:34,height:34,cursor:“pointer”,fontSize:18,display:“flex”,alignItems:“center”,justifyContent:“center”,color:”#64748b”,flexShrink:0}}>✕</button>
+</div>
+<div style={{display:“flex”,gap:12,marginTop:12,alignItems:“flex-start”}}>
+{o.img && <img src={o.img} alt=”” style={{width:110,height:110,objectFit:“cover”,borderRadius:10,border:“2px solid #fff”,flexShrink:0}} onError={e=>{e.target.style.display=“none”}}/>}
+<div style={{display:“flex”,gap:7,flex:1,flexWrap:“wrap”,alignContent:“flex-start”}}>
+{[[“Prix”,`${o.price}€`,”#0f172a”],[“Estimé”,o.estimated,color],[“Gain”,gain>0?`+${gain}€`:”—”,”#16a34a”],[“Ratio”,`×${ratio}`,color],[“Conf.”,`${o.confidence}%`,”#7c3aed”]].map(([l,v,col])=>(
+<div key={l} style={{background:”#fff”,borderRadius:8,padding:“6px 10px”,textAlign:“center”,border:“1px solid #e2e8f0”,minWidth:70,flex:1}}>
+<div style={{fontSize:9,color:”#9ca3af”,fontWeight:600,textTransform:“uppercase”,letterSpacing:0.3}}>{l}</div>
+<div style={{fontSize:13,fontWeight:800,color:col,marginTop:1}}>{v}</div>
+</div>
+))}
+</div>
+</div>
+{report && (
+<div style={{display:“flex”,gap:8,marginTop:12,flexWrap:“wrap”}}>
+<a href={report.mapUrl} target=”_blank” rel=“noopener noreferrer” style={{fontSize:11,color:”#2563eb”,background:”#eff6ff”,padding:“4px 10px”,borderRadius:20,textDecoration:“none”,fontWeight:600}}>🗺 Carte ville</a>
+<a href={report.sellerMapUrl} target=”_blank” rel=“noopener noreferrer” style={{fontSize:11,color:”#7c3aed”,background:”#f5f3ff”,padding:“4px 10px”,borderRadius:20,textDecoration:“none”,fontWeight:600}}>📍 Vendeur</a>
+<a href={o.url} target=”_blank” rel=“noopener noreferrer” style={{fontSize:11,color:”#16a34a”,background:”#f0fdf4”,padding:“4px 10px”,borderRadius:20,textDecoration:“none”,fontWeight:600}}>🔗 Annonce</a>
+</div>
+)}
+</div>
+<div style={{padding:“16px 24px”,maxHeight:“55vh”,overflowY:“auto”}}>
+{report ? (
+<>
+<div style={{fontSize:10,color:”#94a3b8”,marginBottom:12,display:“flex”,gap:12,flexWrap:“wrap”}}>
+<span>📅 {report.generatedAt}</span><span>🤖 {report.analyst}</span>
+</div>
+<Markdown text={report.content}/>
+</>
+) : (
+<div style={{textAlign:“center”,padding:“32px 20px”}}>
+<div style={{fontSize:40,marginBottom:12}}>📋</div>
+<div style={{fontWeight:700,color:”#94a3b8”,fontSize:14,marginBottom:8}}>Rapport non disponible</div>
+<div style={{background:”#f8fafc”,border:“1px solid #e2e8f0”,borderRadius:8,padding:“10px 14px”,marginTop:16,fontSize:11,fontFamily:“monospace”,color:”#374151”,userSelect:“all”,lineHeight:1.7}}>
+Rapport complet :<br/>Titre : {o.title}<br/>URL : {o.url}<br/>Prix : {o.price}€ · Estimé : {o.estimated}
+</div>
+</div>
+)}
+</div>
+<div style={{borderTop:“1px solid #f1f5f9”,padding:“12px 20px”,display:“flex”,gap:8,justifyContent:“space-between”,alignItems:“center”,flexWrap:“wrap”}}>
+<div style={{display:“flex”,gap:8}}>
+{report && <button onClick={()=>exportReport(o,report)} style={{padding:“8px 14px”,background:”#0f172a”,color:”#fff”,border:“none”,borderRadius:8,fontSize:12,fontWeight:700,cursor:“pointer”}}>⬇ Exporter HTML</button>}
+<button onClick={()=>window.print()} style={{padding:“8px 14px”,background:”#f1f5f9”,color:”#374151”,border:“none”,borderRadius:8,fontSize:12,fontWeight:600,cursor:“pointer”}}>🖨 Imprimer</button>
+</div>
+<button onClick={onClose} style={{padding:“8px 14px”,background:”#f1f5f9”,color:”#64748b”,border:“none”,borderRadius:8,fontSize:12,fontWeight:600,cursor:“pointer”}}>Fermer</button>
+</div>
+</div>
+</div>
+);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 5b — SYSTÈME DE SUIVI
+// ═══════════════════════════════════════════════════════════════
+
+const STATUTS = [
+{ id:“vu”,             label:“👁 Vu”,              bg:”#f1f5f9”, color:”#64748b”, border:”#cbd5e1” },
+{ id:“contacte”,       label:“📩 Contacté”,         bg:”#eff6ff”, color:”#2563eb”, border:”#93c5fd” },
+{ id:“negociation”,    label:“🤝 Négociation”,      bg:”#fef3c7”, color:”#d97706”, border:”#fcd34d” },
+{ id:“achete”,         label:“✅ Acheté”,            bg:”#f0fdf4”, color:”#16a34a”, border:”#86efac” },
+{ id:“passe”,          label:“❌ Passé”,             bg:”#fff1f2”, color:”#e11d48”, border:”#fda4af” },
+{ id:“revendu”,        label:“💰 Revendu”,           bg:”#faf5ff”, color:”#7c3aed”, border:”#c4b5fd” },
+{ id:“non_interesse”,  label:“🚫 Pas intéressé”,    bg:”#f8fafc”, color:”#94a3b8”, border:”#e2e8f0” },
+];
+const STATUT_MAP = Object.fromEntries(STATUTS.map(s => [s.id, s]));
+const LS_KEY = “chasseur-suivi-v1”;
+
+function useTracker() {
+const [data, setData] = useState(() => {
+try { return JSON.parse(localStorage.getItem(LS_KEY) || “{}”); }
+catch { return {}; }
+});
+
+const save = (url, patch) => {
+setData(prev => {
+const next = { …prev, [url]: { …(prev[url]||{}), …patch, updatedAt: new Date().toISOString() } };
+try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch {}
+return next;
+});
+};
+
+const setStatut = (url, statut) => save(url, { statut });
+const setNote   = (url, note)   => save(url, { note });
+const setPrixAchat  = (url, v)  => save(url, { prixAchat: v });
+const setPrixVente  = (url, v)  => save(url, { prixVente: v });
+const clear     = (url)         => {
+setData(prev => {
+const next = { …prev }; delete next[url];
+try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch {}
+return next;
+});
+};
+
+return { data, setStatut, setNote, setPrixAchat, setPrixVente, clear };
+}
+
+// Mini-widget de suivi dans la Card
+function TrackWidget({ url, tracker, o }) {
+const entry   = tracker.data[url] || {};
+const statut  = entry.statut;
+const statObj = statut ? STATUT_MAP[statut] : null;
+const [open, setOpen] = useState(false);
+const [note, setNote] = useState(entry.note || “”);
+const [prixA, setPrixA] = useState(entry.prixAchat || “”);
+const [prixV, setPrixV] = useState(entry.prixVente || “”);
+
+// Sync local state if entry changes externally
+useEffect(() => {
+setNote(entry.note || “”);
+setPrixA(entry.prixAchat || “”);
+setPrixV(entry.prixVente || “”);
+}, [entry.note, entry.prixAchat, entry.prixVente]);
+
+const cycleStatut = () => {
+const idx  = STATUTS.findIndex(s => s.id === statut);
+const next = STATUTS[(idx + 1) % STATUTS.length];
+tracker.setStatut(url, next.id);
+};
+
+return (
+<div style={{marginTop:8,borderTop:“1px solid #e5e7eb”,paddingTop:8}}>
+<div style={{display:“flex”,gap:6,alignItems:“center”}}>
+{/* Bouton statut principal */}
+<button onClick={cycleStatut} style={{
+flex:1, padding:“6px 8px”, border:`1.5px solid ${statObj?.border||"#e5e7eb"}`,
+borderRadius:8, cursor:“pointer”, fontSize:11, fontWeight:700,
+background: statObj?.bg || “#f8fafc”,
+color: statObj?.color || “#94a3b8”,
+textAlign:“left”, transition:“all 0.15s”,
+}}>
+{statObj ? statObj.label : “➕ Suivi…”}
+</button>
+{/* Bouton détails */}
+<button onClick={()=>setOpen(o=>!o)} style={{
+width:30, height:30, border:“1px solid #e5e7eb”, borderRadius:8,
+background:”#f8fafc”, cursor:“pointer”, fontSize:13, color:”#64748b”,
+display:“flex”, alignItems:“center”, justifyContent:“center”,
+fontWeight:700,
+}}>{open ? “▲” : “▼”}</button>
+{/* Reset */}
+{statut && <button onClick={()=>tracker.clear(url)} style={{
+width:30, height:30, border:“1px solid #fecaca”, borderRadius:8,
+background:”#fff1f2”, cursor:“pointer”, fontSize:13, color:”#e11d48”,
+display:“flex”, alignItems:“center”, justifyContent:“center”,
+}}>✕</button>}
+</div>
+
+```
+  {/* Sélecteur de statuts */}
+  {open && (
+    <div style={{marginTop:8,display:"flex",flexWrap:"wrap",gap:4}}>
+      {STATUTS.map(s => (
+        <button key={s.id} onClick={()=>{ tracker.setStatut(url, s.id); }}
+          style={{
+            padding:"4px 8px", border:`1.5px solid ${statut===s.id ? s.border : "#e5e7eb"}`,
+            borderRadius:20, cursor:"pointer", fontSize:10, fontWeight:700,
+            background: statut===s.id ? s.bg : "#fff",
+            color: statut===s.id ? s.color : "#9ca3af",
+            transition:"all 0.1s",
+          }}>{s.label}</button>
+      ))}
+    </div>
+  )}
+
+  {/* Champs contextuels selon statut */}
+  {open && (
+    <div style={{marginTop:8,display:"flex",flexDirection:"column",gap:6}}>
+      {(statut==="achete"||statut==="negociation") && (
+        <div style={{display:"flex",alignItems:"center",gap:6}}>
+          <span style={{fontSize:10,color:"#64748b",whiteSpace:"nowrap"}}>Prix payé :</span>
+          <input type="number" value={prixA} placeholder={`${o.price}`}
+            onChange={e=>setPrixA(e.target.value)}
+            onBlur={()=>tracker.setPrixAchat(url, prixA ? +prixA : "")}
+            style={{flex:1,padding:"4px 8px",border:"1px solid #e5e7eb",borderRadius:6,fontSize:11,color:"#0f172a",outline:"none"}}
+          />
+          <span style={{fontSize:10,color:"#64748b"}}>€</span>
+        </div>
+      )}
+      {statut==="revendu" && (
+        <>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:10,color:"#64748b",whiteSpace:"nowrap"}}>Acheté :</span>
+            <input type="number" value={prixA} placeholder={`${o.price}`}
+              onChange={e=>setPrixA(e.target.value)}
+              onBlur={()=>tracker.setPrixAchat(url, prixA ? +prixA : "")}
+              style={{flex:1,padding:"4px 8px",border:"1px solid #e5e7eb",borderRadius:6,fontSize:11,color:"#0f172a",outline:"none"}}
+            />
+            <span style={{fontSize:10,color:"#64748b"}}>€</span>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:10,color:"#64748b",whiteSpace:"nowrap"}}>Revendu :</span>
+            <input type="number" value={prixV} placeholder="?"
+              onChange={e=>setPrixV(e.target.value)}
+              onBlur={()=>tracker.setPrixVente(url, prixV ? +prixV : "")}
+              style={{flex:1,padding:"4px 8px",border:"1px solid #e5e7eb",borderRadius:6,fontSize:11,color:"#0f172a",outline:"none"}}
+            />
+            <span style={{fontSize:10,color:"#64748b"}}>€</span>
+          </div>
+          {prixA && prixV && (
+            <div style={{background:"#f0fdf4",borderRadius:6,padding:"4px 8px",fontSize:11,color:"#16a34a",fontWeight:700}}>
+              ROI réel : +{(+prixV - +prixA)}€ · ×{(+prixV / +prixA).toFixed(2)}
+            </div>
+          )}
+        </>
+      )}
+      <textarea value={note} placeholder="Note libre : prix négocié, contact, observations…"
+        onChange={e=>setNote(e.target.value)}
+        onBlur={()=>tracker.setNote(url, note)}
+        rows={2}
+        style={{padding:"5px 8px",border:"1px solid #e5e7eb",borderRadius:6,fontSize:11,color:"#374151",resize:"vertical",outline:"none",fontFamily:"inherit"}}
+      />
+    </div>
+  )}
+</div>
+```
+
+);
+}
+
+// Onglet récapitulatif de suivi
+function TrackingView({ tracker }) {
+const entries = Object.entries(tracker.data)
+.map(([url, d]) => ({ url, …d, o: POOL.find(p => p.url === url) }))
+.filter(e => e.o)
+.sort((a,b) => new Date(b.updatedAt||0) - new Date(a.updatedAt||0));
+
+if (entries.length === 0) return (
+<div style={{textAlign:“center”,padding:“60px 20px”}}>
+<div style={{fontSize:48,marginBottom:14}}>📭</div>
+<div style={{fontWeight:700,color:”#64748b”,fontSize:14,marginBottom:8}}>Aucun suivi en cours</div>
+<div style={{fontSize:12,color:”#475569”,lineHeight:1.7}}>
+Utilise le bouton <b style={{color:”#f1f5f9”}}>➕ Suivi…</b> sur chaque annonce<br/>pour démarrer le tracking.
+</div>
+</div>
+);
+
+// Statistiques globales
+const stats = STATUTS.map(s => ({
+…s, count: entries.filter(e => e.statut === s.id).length
+})).filter(s => s.count > 0);
+
+const achetes  = entries.filter(e => e.statut===“achete”||e.statut===“revendu”);
+const revendus = entries.filter(e => e.statut===“revendu” && e.prixAchat && e.prixVente);
+const totalInvesti = achetes.reduce((acc,e) => acc + (e.prixAchat || e.o.price), 0);
+const totalROI     = revendus.reduce((acc,e) => acc + (e.prixVente - e.prixAchat), 0);
+
+const exportCSV = () => {
+const rows = [
+[“Titre”,“Statut”,“Prix annonce”,“Prix acheté”,“Prix revendu”,“ROI €”,“Note”,“URL”],
+…entries.map(e => [
+`"${e.o.title}"`,
+e.statut||””,
+e.o.price,
+e.prixAchat||””,
+e.prixVente||””,
+(e.prixAchat && e.prixVente) ? e.prixVente - e.prixAchat : “”,
+`"${(e.note||"").replace(/"/g,"'")}"`,
+e.url,
+])
+].map(r => r.join(”;”)).join(”\n”);
+const a = Object.assign(document.createElement(“a”),{
+href: URL.createObjectURL(new Blob([rows],{type:“text/csv;charset=utf-8”})),
+download: `chasseur-suivi-${new Date().toISOString().slice(0,10)}.csv`,
+});
+a.click();
+};
+
+return (
+<div>
+{/* Header stats */}
+<div style={{background:“rgba(15,23,42,0.5)”,borderRadius:12,padding:“14px 16px”,marginBottom:16,border:“1px solid rgba(255,255,255,0.07)”}}>
+<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:12,flexWrap:“wrap”,gap:8}}>
+<div style={{color:”#f1f5f9”,fontWeight:800,fontSize:14}}>📊 Tableau de bord</div>
+<button onClick={exportCSV} style={{padding:“5px 12px”,background:”#1e3a5f”,color:”#60a5fa”,border:“1px solid #60a5fa44”,borderRadius:8,cursor:“pointer”,fontSize:11,fontWeight:700}}>
+⬇ Export CSV
+</button>
+</div>
+<div style={{display:“flex”,gap:8,flexWrap:“wrap”,marginBottom:12}}>
+{stats.map(s => (
+<span key={s.id} style={{padding:“4px 10px”,borderRadius:20,background:s.bg,color:s.color,border:`1px solid ${s.border}`,fontSize:11,fontWeight:700}}>
+{s.label} · {s.count}
+</span>
+))}
+</div>
+{(totalInvesti > 0 || totalROI !== 0) && (
+<div style={{display:“grid”,gridTemplateColumns:“1fr 1fr 1fr”,gap:8}}>
+{[
+[“Investi”,`${totalInvesti}€`,”#60a5fa”],
+[“Revendus”,`${revendus.length} lot${revendus.length>1?"s":""}`,”#c084fc”],
+[“ROI réel”,totalROI>0?`+${totalROI}€`:totalROI===0?”—”:`${totalROI}€`,totalROI>0?”#4ade80”:totalROI===0?”#94a3b8”:”#f87171”],
+].map(([l,v,c]) => (
+<div key={l} style={{background:“rgba(255,255,255,0.04)”,borderRadius:8,padding:“8px”,textAlign:“center”,border:“1px solid rgba(255,255,255,0.06)”}}>
+<div style={{fontSize:9,color:”#64748b”,textTransform:“uppercase”,marginBottom:3}}>{l}</div>
+<div style={{fontSize:15,fontWeight:800,color:c}}>{v}</div>
+</div>
+))}
+</div>
+)}
+</div>
+
+```
+  {/* Liste des annonces suivies */}
+  <div style={{display:"flex",flexDirection:"column",gap:8}}>
+    {entries.map(e => {
+      const s  = STATUT_MAP[e.statut] || STATUTS[0];
+      const { low, high } = parseEst(e.o.estimated);
+      const mid  = (low+high)/2;
+      const gain = Math.round(mid - e.o.price);
+      const roiReel = (e.prixAchat && e.prixVente) ? e.prixVente - e.prixAchat : null;
+
+      return (
+        <div key={e.url} style={{background:"#fff",borderRadius:12,border:`2px solid ${s.border}`,overflow:"hidden",display:"flex",alignItems:"stretch"}}>
+          {/* Bande couleur statut */}
+          <div style={{width:6,background:s.color,flexShrink:0}}/>
+          {/* Photo */}
+          {e.o.img && <img src={e.o.img} alt="" style={{width:72,height:72,objectFit:"cover",flexShrink:0,alignSelf:"center",margin:"8px 0 8px 8px",borderRadius:8}} onError={ev=>ev.target.style.display="none"}/>}
+          {/* Contenu */}
+          <div style={{flex:1,padding:"10px 12px",minWidth:0}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,marginBottom:4}}>
+              <div style={{fontSize:12,fontWeight:700,color:"#0f172a",lineHeight:1.3}}>{e.o.title}</div>
+              <span style={{padding:"2px 8px",borderRadius:16,background:s.bg,color:s.color,border:`1px solid ${s.border}`,fontSize:10,fontWeight:700,whiteSpace:"nowrap",flexShrink:0}}>{s.label}</span>
+            </div>
+            <div style={{display:"flex",gap:10,fontSize:11,color:"#64748b",flexWrap:"wrap",marginBottom:4}}>
+              <span>🏷 {e.o.price}€</span>
+              {e.prixAchat && <span style={{color:"#2563eb"}}>💳 {e.prixAchat}€</span>}
+              {e.prixVente && <span style={{color:"#7c3aed"}}>💸 {e.prixVente}€</span>}
+              {roiReel !== null && <span style={{fontWeight:700,color:roiReel>=0?"#16a34a":"#e11d48"}}>{roiReel>=0?"+":""}{roiReel}€</span>}
+              {!e.prixAchat && <span style={{color:"#94a3b8"}}>Estimé : {e.o.estimated}</span>}
+            </div>
+            {e.note && <div style={{fontSize:10,color:"#64748b",background:"#f8fafc",borderRadius:5,padding:"3px 7px",marginBottom:4,fontStyle:"italic"}}>💬 {e.note}</div>}
+            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+              <a href={e.url} target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:"#2563eb",textDecoration:"none",fontWeight:600}}>Voir l'annonce →</a>
+              <span style={{color:"#e2e8f0"}}>·</span>
+              <button onClick={()=>tracker.clear(e.url)} style={{fontSize:10,color:"#94a3b8",background:"none",border:"none",cursor:"pointer",padding:0}}>Supprimer</button>
+              {e.updatedAt && <span style={{fontSize:9,color:"#cbd5e1",marginLeft:"auto"}}>{new Date(e.updatedAt).toLocaleDateString("fr-BE")}</span>}
+            </div>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</div>
+```
+
+);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 6 — CARTE ANNONCE
+// ═══════════════════════════════════════════════════════════════
+function Card({ o, isNew, age, tracker }) {
+const [showReport, setShowReport] = useState(false);
+const hasReport = !!REPORTS[o.url];
+const c       = catEntry(o);
+const entry   = tracker?.data[o.url];
+const statObj = entry?.statut ? STATUT_MAP[entry.statut] : null;
+const { low, high } = parseEst(o.estimated);
+const mid   = (low+high)/2;
+const gain  = Math.round(mid - o.price);
+const ratio = o.price > 0 ? (mid/o.price).toFixed(1) : “—”;
+const color = CAT_COLOR[c] || “#9ca3af”;
+const bg    = CAT_BG[c]    || “#f9fafb”;
+const isHot = isNew && age === 0;
+
+return (
+<>
+{showReport && <ReportModal o={o} onClose={()=>setShowReport(false)}/>}
+<div style={{background:bg,borderRadius:14,border:`2px solid ${isHot?color:statObj?statObj.border:color+"33"}`,padding:14,position:“relative”,boxShadow:isHot?`0 0 0 3px ${color}44,0 6px 24px ${color}33`:statObj?“0 2px 12px rgba(0,0,0,0.1)”:“0 2px 8px rgba(0,0,0,0.06)”,transition:“all 0.3s”}}>
+{statObj && !isNew && <span style={{position:“absolute”,top:10,right:10,fontSize:9,fontWeight:700,padding:“2px 7px”,borderRadius:10,background:statObj.bg,color:statObj.color,border:`1px solid ${statObj.border}`}}>{statObj.label}</span>}
+{isNew && <span style={{position:“absolute”,top:10,right:10,background:isHot?”#ef4444”:”#f97316”,color:”#fff”,fontSize:10,fontWeight:700,padding:“2px 8px”,borderRadius:10}}>{isHot?“● NOUVEAU”:“↑ RÉCENT”}</span>}
+{hasReport && !isNew && !statObj && <span style={{position:“absolute”,top:10,right:10,fontSize:9,color:”#16a34a”,background:”#f0fdf4”,padding:“2px 7px”,borderRadius:10,fontWeight:700}}>📋 Rapport dispo</span>}
+<div style={{display:“flex”,alignItems:“center”,gap:6,marginBottom:8,flexWrap:“wrap”}}>
+<span style={{fontSize:10,fontWeight:700,color:”#fff”,background:”#e55b2b”,padding:“2px 7px”,borderRadius:8}}>2ememain</span>
+<span style={{fontSize:10,fontWeight:700,color:color,background:color+“18”,padding:“2px 8px”,borderRadius:8}}>{CAT_LABEL[c]}</span>
+<span style={{fontSize:10,color:”#9ca3af”,marginLeft:“auto”}}>conf. <b style={{color:”#374151”}}>{o.confidence}%</b></span>
+</div>
+<div style={{display:“flex”,gap:10,marginBottom:10}}>
+{o.img && <img src={o.img} alt=”” style={{width:76,height:76,objectFit:“cover”,borderRadius:8,flexShrink:0,border:“1px solid #e5e7eb”}} onError={e=>{e.target.style.display=“none”}}/>}
+<div style={{flex:1,minWidth:0}}>
+<div style={{fontWeight:700,fontSize:13,color:”#111827”,lineHeight:1.3,marginBottom:3}}>{o.title}</div>
+<div style={{fontSize:11,color:”#6b7280”,lineHeight:1.4}}>{o.artiste}</div>
+</div>
+</div>
+<div style={{display:“grid”,gridTemplateColumns:“1fr 1fr 1fr”,gap:5,marginBottom:8}}>
+{[[“Prix”,`${o.price}€`,”#374151”],[“Estimé”,o.estimated,color],[“Gain”,gain>0?`+${gain}€ ×${ratio}`:”—”,color]].map(([l,v,col])=>(
+<div key={l} style={{background:”#fff”,borderRadius:8,padding:“5px 6px”,border:“1px solid #e5e7eb”,textAlign:“center”}}>
+<div style={{fontSize:9,color:”#9ca3af”,fontWeight:600,textTransform:“uppercase”}}>{l}</div>
+<div style={{fontSize:12,fontWeight:700,color:col,marginTop:1}}>{v}</div>
+</div>
+))}
+</div>
+{o.reason && <div style={{fontSize:11,color:”#374151”,background:”#fff”,borderRadius:7,padding:“6px 8px”,marginBottom:6,borderLeft:`3px solid ${color}`,lineHeight:1.5}}>{o.reason}</div>}
+{o.red_flags && <div style={{fontSize:10,color:”#92400e”,background:”#fef3c7”,borderRadius:7,padding:“5px 8px”,marginBottom:8,lineHeight:1.4}}>⚠ {o.red_flags}</div>}
+<div style={{display:“grid”,gridTemplateColumns:“1fr 1fr”,gap:6}}>
+<button onClick={()=>setShowReport(true)} style={{padding:“8px 10px”,border:“none”,cursor:“pointer”,borderRadius:8,fontSize:11,fontWeight:700,background:hasReport?”#0f172a”:”#f1f5f9”,color:hasReport?”#f1f5f9”:”#94a3b8”,display:“flex”,alignItems:“center”,justifyContent:“center”,gap:5}}>
+{hasReport?“📋 Rapport expert”:“📋 Rapport”}
+</button>
+<a href={o.url} target=”_blank” rel=“noopener noreferrer” style={{display:“flex”,alignItems:“center”,justifyContent:“center”,padding:“8px 10px”,borderRadius:8,background:`linear-gradient(135deg,${color},${color}bb)`,color:”#fff”,fontSize:11,fontWeight:700,textDecoration:“none”}}>
+Voir l’annonce →
+</a>
+</div>
+{tracker && <TrackWidget url={o.url} tracker={tracker} o={o}/>}
+</div>
+</>
+);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 7 — MOTEUR DE SCAN
+// ═══════════════════════════════════════════════════════════════
+function useScan(pool) {
+const [scanning, setScanning] = useState(false);
+const [progress, setProgress] = useState(0);
+const [entries,  setEntries]  = useState([]);
+const [batchIdx, setBatchIdx] = useState(0);
+const [sorted,   setSorted]   = useState(false);
+const scanRef  = useRef(null);
+const batchRef = useRef(0);
+const shuffRef = useRef([]);
+
+const stopScan = useCallback(() => {
+clearInterval(scanRef.current);
+setScanning(false);
+setEntries(prev => […prev].sort((a,b) => scoreEntry(b.o)-scoreEntry(a.o)));
+setSorted(true);
+}, []);
+
+const startScan = useCallback(() => {
+clearInterval(scanRef.current);
+shuffRef.current = […pool].filter(o=>catEntry(o)!==“rejeté”).sort(()=>Math.random()-0.5);
+batchRef.current = 0;
+setEntries([]); setBatchIdx(0); setProgress(0); setSorted(false); setScanning(true);
+scanRef.current = setInterval(() => {
+const total = shuffRef.current.length;
+const start = batchRef.current * 4;
+if (start >= total) {
+clearInterval(scanRef.current); setScanning(false); setProgress(100);
+setEntries(prev=>[…prev].sort((a,b)=>scoreEntry(b.o)-scoreEntry(a.o)));
+setSorted(true); return;
+}
+const end = Math.min(start+4, total);
+const bi  = batchRef.current;
+setEntries(prev => {
+const seen = new Set(prev.map(e=>e.o.url));
+return […shuffRef.current.slice(start,end).filter(o=>!seen.has(o.url)).map(o=>({o,bi})), …prev];
+});
+batchRef.current += 1;
+setBatchIdx(bi+1);
+setProgress(Math.round((end/total)*100));
+}, 2000);
+}, [pool]);
+
+useEffect(() => () => clearInterval(scanRef.current), []);
+return { scanning, progress, entries, batchIdx, sorted, startScan, stopScan };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 8b — PAGE D’ACCUEIL & SÉLECTION DE RÔLE
+// ═══════════════════════════════════════════════════════════════
+
+const OBJECT_TYPES = [
+{ id:“tout”,       label:“Tout”,                    icon:“🎯”, desc:“Toutes catégories confondues” },
+{ id:“peinture”,   label:“Peinture / Tableau”,       icon:“🖼”,  desc:“Huile, acrylique, aquarelle…” },
+{ id:“gravure”,    label:“Gravure / Lithographie”,   icon:“✏️”,  desc:“Eau-forte, lithographie, sérigraphie…” },
+{ id:“ceramique”,  label:“Céramique / Verre”,        icon:“🏺”,  desc:“Porcelaine, faïence, cristal, VSL…” },
+{ id:“sculpture”,  label:“Sculpture / Bronze”,       icon:“🗿”,  desc:“Bronzes, marbres, terres cuites…” },
+{ id:“mobilier”,   label:“Mobilier / Décoration”,    icon:“🪑”,  desc:“Art Déco, mobilier ancien, objets…” },
+];
+
+// Mots-clés associés à chaque type pour filtrer le pool
+const TYPE_KEYWORDS = {
+tout:      [],
+peinture:  [“huile”,“toile”,“peinture”,“tableau”,“hst”,“hsp”,“acrylique”,“aquarelle”,“panneau”,“portrait”,“nature morte”,“paysage”,“marine”],
+gravure:   [“gravure”,“eau-forte”,“lithographie”,“lithographi”,“sérigraphie”,“estampe”,“pointe sèche”,“bister”,“encre”],
+ceramique: [“vase”,“céramique”,“boch”,“keramis”,“catteau”,“val saint-lambert”,“vsl”,“faïence”,“porcelaine”,“cristal”,“verre”,“service”],
+sculpture: [“bronze”,“sculpture”,“marbre”,“terre cuite”,“statue”,“buste”,“fonte”,“collinet”],
+mobilier:  [“meuble”,“coiffeuse”,“armoire”,“mobilier”,“art déco”,“de coene”,“pendule”,“horloge”,“décoration”,“objet”],
+};
+
+function matchesType(o, typeId) {
+if (typeId === “tout”) return true;
+const kws = TYPE_KEYWORDS[typeId] || [];
+const text = (o.title + “ “ + o.artiste + “ “ + (o.desc||””)).toLowerCase();
+return kws.some(k => text.includes(k));
+}
+
+const LS_PREFS_KEY = “chasseur-prefs-v1”;
+
+function usePreferences() {
+const [prefs, setPrefs] = useState(() => {
+try { return JSON.parse(localStorage.getItem(LS_PREFS_KEY) || “{}”); }
+catch { return {}; }
+});
+const save = patch => {
+setPrefs(prev => {
+const next = { …prev, …patch };
+try { localStorage.setItem(LS_PREFS_KEY, JSON.stringify(next)); } catch {}
+return next;
+});
+};
+return { prefs, save };
+}
+
+// Panneau préférences acheteur (modal inline)
+function PrefsPanel({ prefs, onSave, onClose }) {
+const [types,  setTypes]  = useState(prefs.types  || []);
+const [budget, setBudget] = useState(prefs.budget || 500);
+
+const toggleType = id => {
+if (id === “tout”) { setTypes([]); return; }
+setTypes(prev => prev.includes(id) ? prev.filter(x=>x!==id) : […prev.filter(x=>x!==“tout”), id]);
+};
+const isActive = id => id===“tout” ? types.length===0 : types.includes(id);
+
+return (
+<div onClick={e=>e.target===e.currentTarget&&onClose()}
+style={{position:“fixed”,inset:0,zIndex:200,background:“rgba(0,0,0,0.7)”,backdropFilter:“blur(6px)”,display:“flex”,alignItems:“center”,justifyContent:“center”,padding:20}}>
+<div style={{background:”#0f172a”,border:“1px solid rgba(255,255,255,0.1)”,borderRadius:18,width:“100%”,maxWidth:460,padding:“24px”,boxShadow:“0 24px 64px rgba(0,0,0,0.5)”}}>
+
+```
+    {/* Header */}
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22}}>
+      <div>
+        <div style={{color:"#f1f5f9",fontWeight:800,fontSize:15}}>⚙️ Mes préférences</div>
+        <div style={{color:"#475569",fontSize:11,marginTop:2}}>Appliquées à chaque ouverture de l'app</div>
+      </div>
+      <button onClick={onClose} style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,width:32,height:32,cursor:"pointer",color:"#94a3b8",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+    </div>
+
+    {/* Types d'objets */}
+    <div style={{marginBottom:20}}>
+      <div style={{color:"#94a3b8",fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:0.8,marginBottom:10}}>Types d'objets</div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:7}}>
+        {OBJECT_TYPES.map(t => (
+          <button key={t.id} onClick={()=>toggleType(t.id)} style={{
+            padding:"7px 12px",borderRadius:10,border:`1.5px solid ${isActive(t.id)?"#3b82f6":"rgba(255,255,255,0.08)"}`,
+            cursor:"pointer",fontSize:12,fontWeight:600,
+            background: isActive(t.id) ? "rgba(59,130,246,0.15)" : "rgba(255,255,255,0.03)",
+            color: isActive(t.id) ? "#60a5fa" : "#64748b",
+            transition:"all 0.15s",display:"flex",alignItems:"center",gap:6,
+          }}>
+            <span style={{fontSize:16}}>{t.icon}</span>
+            <div style={{textAlign:"left"}}>
+              <div style={{fontSize:11,lineHeight:1.2}}>{t.label}</div>
+              <div style={{fontSize:9,color:isActive(t.id)?"#3b82f688":"#334155",fontWeight:400}}>{t.desc}</div>
+            </div>
+          </button>
+        ))}
+      </div>
+      {types.length===0 && <div style={{marginTop:8,fontSize:10,color:"#334155"}}>Aucun filtre — toutes les catégories visibles</div>}
+    </div>
+
+    {/* Budget */}
+    <div style={{marginBottom:24}}>
+      <div style={{color:"#94a3b8",fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:0.8,marginBottom:10}}>
+        Budget maximum : <span style={{color:"#f1f5f9",fontWeight:800}}>{budget}€</span>
+      </div>
+      <input type="range" min={20} max={1000} step={10} value={budget} onChange={e=>setBudget(+e.target.value)}
+        style={{width:"100%",accentColor:"#3b82f6",cursor:"pointer"}}/>
+      <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+        <span style={{fontSize:10,color:"#334155"}}>20€</span>
+        <span style={{fontSize:10,color:"#334155"}}>1000€</span>
+      </div>
+    </div>
+
+    {/* Actions */}
+    <div style={{display:"flex",gap:8}}>
+      <button onClick={()=>{ onSave({ types, budget }); onClose(); }} style={{
+        flex:1,padding:"10px",background:"linear-gradient(135deg,#2563eb,#1d4ed8)",color:"#fff",
+        border:"none",borderRadius:10,fontSize:13,fontWeight:700,cursor:"pointer",
+      }}>✓ Enregistrer</button>
+      <button onClick={()=>{ onSave({ types:[], budget:500 }); onClose(); }} style={{
+        padding:"10px 14px",background:"rgba(255,255,255,0.04)",color:"#64748b",
+        border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,fontSize:12,cursor:"pointer",
+      }}>Réinitialiser</button>
+    </div>
+  </div>
+</div>
+```
+
+);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 8c — MES OBJETS (workflow achat → vente → ROI)
+// ═══════════════════════════════════════════════════════════════
+
+const LS_OBJETS_KEY = “chasseur-objets-v1”;
+
+const CANAUX = [
+{ id:“catawiki”,   label:“Catawiki”,    emoji:“🥇”, commission:0.20, desc:“Enchères internationales”,    delai:“15–45j” },
+{ id:“2ememain”,   label:“2ememain.be”, emoji:“🥈”, commission:0,    desc:“Vente directe locale”,         delai:“7–30j”  },
+{ id:“antiquaire”, label:“Antiquaire”,  emoji:“🥉”, commission:0.50, desc:“Reprise rapide, marge réduite”,delai:“Immédiat”},
+{ id:“brocante”,   label:“Brocante”,    emoji:“🔄”, commission:0,    desc:“Liquidation dernier recours”,  delai:“1 jour” },
+];
+
+function useObjets() {
+const [objets, setObjets] = useState(() => {
+try { return JSON.parse(localStorage.getItem(LS_OBJETS_KEY) || “[]”); }
+catch { return []; }
+});
+const save = data => {
+setObjets(data);
+try { localStorage.setItem(LS_OBJETS_KEY, JSON.stringify(data)); } catch {}
+};
+const add    = o    => save([…objets, { …o, id: Date.now().toString(), dateAchat: new Date().toISOString(), statut:“achete”, canalIdx:0 }]);
+const update = (id, patch) => save(objets.map(o => o.id===id ? {…o,…patch} : o));
+const remove = id  => save(objets.filter(o => o.id!==id));
+return { objets, add, update, remove };
+}
+
+function joursDepuis(iso) {
+if (!iso) return 0;
+return Math.floor((Date.now() - new Date(iso)) / 86400000);
+}
+
+function ficheRevente(objet) {
+const canal = CANAUX[objet.canalIdx || 0];
+const { low, high } = parseEst(objet.estimated || “”);
+const mid = (low + high) / 2;
+const prix = mid > 0 ? Math.round(mid * 0.65) : “”;
+return `${objet.title}\n\n${objet.artiste || ""}\n\nÉtat : ${objet.etat || "bon"}. Signé.\nProvenance : collection privée belge.\n\n${objet.desc || ""}\n\nPrix demandé : ${prix ? prix+"€" : "à définir"}`;
+}
+
+function AddObjetModal({ onAdd, onClose }) {
+const [step, setStep]       = useState(“source”);
+const [source, setSource]   = useState(null);
+const [photos, setPhotos]   = useState([]);
+const [loading, setLoading] = useState(false);
+const [poolSearch, setPoolSearch] = useState(””);
+const [enrichLoading, setEnrichLoading] = useState(false);
+const [enrichQA, setEnrichQA]     = useState([]);
+const [poolMatch, setPoolMatch]   = useState(null);   // objet du POOL si match détecté
+const [matchDismissed, setMatchDismissed] = useState(false);
+const [form, setForm] = useState({
+title:””, artiste:””, desc:””, estimated:””, technique:””,
+epoque:””, etat:“bon”, dimensions:””, signature:””,
+url:””, img:””, prixAchat:””, notes:””, conseil:””
+});
+const set = (k,v) => setForm(f=>({…f,[k]:v}));
+const fileRef = useRef();
+
+// ── Ajout de photos ──
+const handleFiles = e => {
+const files = Array.from(e.target.files);
+files.forEach(file => {
+const r = new FileReader();
+r.onload = ev => setPhotos(p => […p, { base64: ev.target.result, name: file.name }]);
+r.readAsDataURL(file);
+});
+};
+
+// ── Cherche un match dans le POOL par mots-clés ──
+const findPoolMatch = (parsed) => {
+if (!parsed.artiste && !parsed.title) return null;
+const needle = `${parsed.artiste||""} ${parsed.title||""} ${parsed.technique||""}`.toLowerCase();
+const words  = needle.split(/\s+/).filter(w => w.length > 3);
+let best = null, bestScore = 0;
+POOL.forEach(o => {
+const hay = `${o.title} ${o.artiste} ${o.desc||""}`.toLowerCase();
+const score = words.filter(w => hay.includes(w)).length;
+if (score >= 2 && score > bestScore) { best = o; bestScore = score; }
+});
+return best;
+};
+
+// ── Fusionner données pool dans le form ──
+const mergePoolData = (poolObj) => {
+setForm(f => ({…f,
+title:     f.title     || poolObj.title,
+artiste:   f.artiste   || poolObj.artiste,
+desc:      f.desc      || poolObj.desc || “”,
+estimated: f.estimated || poolObj.estimated || “”,
+url:       f.url       || poolObj.url  || “”,
+conseil:   f.conseil   || poolObj.reason || “”,
+prixAchat: f.prixAchat || poolObj.price || “”,
+}));
+setMatchDismissed(true);
+};
+
+const [analyseError, setAnalyseError] = useState(null);
+
+// ── Redimensionne une image base64 à max 800px ──
+const resizeImage = (base64, maxSize=800) => new Promise(resolve => {
+const img = new Image();
+img.onload = () => {
+const ratio = Math.min(maxSize/img.width, maxSize/img.height, 1);
+const c = document.createElement(“canvas”);
+c.width  = Math.round(img.width  * ratio);
+c.height = Math.round(img.height * ratio);
+c.getContext(“2d”).drawImage(img, 0, 0, c.width, c.height);
+resolve(c.toDataURL(“image/jpeg”, 0.82));
+};
+img.src = base64;
+});
+
+const [apiKey, setApiKey]   = useState(() => localStorage.getItem(“chasseur-api-key”) || “”);
+const [showKeyInput, setShowKeyInput] = useState(false);
+
+// ── Helper appel API ──
+const callClaude = async (content) => {
+const key = localStorage.getItem(“chasseur-api-key”) || apiKey;
+if (!key) { setShowKeyInput(true); throw new Error(“Clé API manquante”); }
+const res = await fetch(“https://api.anthropic.com/v1/messages”, {
+method: “POST”,
+headers: {
+“Content-Type”: “application/json”,
+“x-api-key”: key,
+“anthropic-version”: “2023-06-01”,
+“anthropic-dangerous-allow-browser”: “true”,
+},
+body: JSON.stringify({
+model: “claude-sonnet-4-20250514”,
+max_tokens: 1000,
+messages: [{ role: “user”, content }]
+})
+});
+const data = await res.json();
+// Afficher la réponse complète dans l’erreur
+if (data.error) throw new Error(`${data.error.type}: ${data.error.message}`);
+if (!data.content) throw new Error(`Réponse brute: ${JSON.stringify(data).slice(0,300)}`);
+const text = data.content.find(c => c.type === “text”)?.text || “{}”;
+const match = text.match(/{[\s\S]*}/);
+if (!match) throw new Error(`JSON introuvable dans la réponse`);
+return match[0];
+};
+
+// ── Analyse IA ──
+const analyser = async () => {
+setLoading(true);
+setPoolMatch(null);
+setMatchDismissed(false);
+try {
+const resized = await Promise.all(photos.map(p => resizeImage(p.base64)));
+const imageContents = resized.map(b64 => ({
+type: “image”,
+source: { type:“base64”, media_type:“image/jpeg”, data: b64.split(”,”)[1] }
+}));
+
+```
+  const prompt = `Tu es un expert en art et antiquités belges. Analyse cette/ces photo(s) et génère une fiche JSON strict sans markdown :
+```
+
+{“title”:“titre court”,“artiste”:“nom ou Non identifié”,“technique”:“ex Huile sur toile”,“epoque”:“ex XIXe siècle”,“desc”:“2-3 phrases”,“estimated”:“ex 150-400€”,“signature”:“description ou Non visible”,“etat”:“excellent/très bon/bon/passable”,“conseil”:“1 phrase canal + argument”,“questions”:[“q1”,“q2”,“q3”]}`;
+
+```
+  const raw = await callClaude([...imageContents, { type:"text", text: prompt }]);
+  const parsed = JSON.parse(raw);
+
+  setForm(f => ({...f,
+    title:     parsed.title     || "",
+    artiste:   parsed.artiste   || "",
+    technique: parsed.technique || "",
+    epoque:    parsed.epoque    || "",
+    desc:      parsed.desc      || "",
+    estimated: parsed.estimated || "",
+    signature: parsed.signature || "",
+    etat:      parsed.etat      || "bon",
+    conseil:   parsed.conseil   || "",
+    img:       photos[0]?.base64 || "",
+  }));
+  if (parsed.questions?.length) setEnrichQA(parsed.questions.map(q=>({q, a:""})));
+  const match = findPoolMatch(parsed);
+  if (match) setPoolMatch(match);
+  setStep("fiche");
+} catch(e) {
+  console.error("Analyse IA:", e);
+  setAnalyseError(e.message || "Erreur inconnue");
+  setForm(f => ({...f, img: photos[0]?.base64 || ""}));
+  setStep("fiche");
+} finally { setLoading(false); }
+```
+
+};
+
+// ── Réévaluation avec réponses enrichissement ──
+const reanalyser = async () => {
+setEnrichLoading(true);
+try {
+const context = enrichQA.filter(x=>x.a).map(x=>`Q: ${x.q}\nR: ${x.a}`).join(”\n”);
+const resized  = await Promise.all(photos.map(p => resizeImage(p.base64)));
+const imageContents = resized.map(b64 => ({
+type: “image”,
+source: { type:“base64”, media_type:“image/jpeg”, data: b64.split(”,”)[1] }
+}));
+const prompt = `Expert art et antiquités belges. Réévalue cet objet avec ces infos : ${context} Fiche : ${JSON.stringify({title:form.title,artiste:form.artiste,technique:form.technique,epoque:form.epoque,estimated:form.estimated})} JSON strict sans markdown : {"title":"...","artiste":"...","technique":"...","epoque":"...","desc":"...","estimated":"...","signature":"...","etat":"...","conseil":"..."}`;
+const raw = await callClaude([…imageContents, { type:“text”, text: prompt }]);
+const parsed = JSON.parse(raw);
+setForm(f => ({…f, …parsed}));
+setStep(“fiche”);
+} catch(e) {
+console.error(“Réévaluation:”, e);
+setStep(“fiche”);
+} finally { setEnrichLoading(false); }
+};
+
+const poolFiltered = POOL.filter(o =>
+!poolSearch || (o.title+o.artiste).toLowerCase().includes(poolSearch.toLowerCase())
+).slice(0, 20);
+
+const handleAddFromPool = o => {
+setForm(f => ({…f,
+title: o.title, artiste: o.artiste, desc: o.desc||””,
+estimated: o.estimated||””, url: o.url||””, img: o.img||””,
+prixAchat: o.price||””, conseil: o.reason||””
+}));
+setStep(“fiche”);
+};
+
+const handleSubmit = () => {
+if (!form.title) return;
+onAdd(form);
+onClose();
+};
+
+// ── Styles communs ──
+const S = {
+header: { background:”#0f172a”, padding:“14px 18px”, display:“flex”, justifyContent:“space-between”, alignItems:“center” },
+closeBtn: { background:“rgba(255,255,255,0.1)”, border:“none”, borderRadius:8, width:30, height:30, cursor:“pointer”, color:”#94a3b8”, fontSize:14, display:“flex”, alignItems:“center”, justifyContent:“center” },
+label: { fontSize:10, color:”#64748b”, fontWeight:600, textTransform:“uppercase”, letterSpacing:0.5, marginBottom:4 },
+input: { width:“100%”, padding:“8px 10px”, border:“1px solid #e2e8f0”, borderRadius:8, fontSize:12, color:”#0f172a”, outline:“none” },
+primaryBtn: { flex:1, padding:“10px”, background:“linear-gradient(135deg,#0f172a,#1e293b)”, color:”#fff”, border:“none”, borderRadius:10, fontSize:13, fontWeight:700, cursor:“pointer” },
+};
+
+return (
+<div onClick={e=>e.target===e.currentTarget&&onClose()}
+style={{position:“fixed”,inset:0,zIndex:500,background:“rgba(0,0,0,0.75)”,backdropFilter:“blur(4px)”,display:“flex”,alignItems:“flex-start”,justifyContent:“center”,padding:“16px 12px”,overflowY:“auto”}}>
+<div style={{background:”#fff”,borderRadius:16,width:“100%”,maxWidth:520,boxShadow:“0 24px 64px rgba(0,0,0,0.4)”,overflow:“hidden”,marginTop:10}}>
+
+```
+    {/* ── Modal clé API ── */}
+    {showKeyInput && (
+      <div style={{position:"absolute",inset:0,zIndex:10,background:"rgba(0,0,0,0.6)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+        <div style={{background:"#fff",borderRadius:14,padding:22,width:"100%",maxWidth:400,boxShadow:"0 16px 48px rgba(0,0,0,0.4)"}}>
+          <div style={{fontWeight:800,fontSize:15,color:"#0f172a",marginBottom:6}}>🔑 Clé API Anthropic</div>
+          <div style={{fontSize:11,color:"#64748b",lineHeight:1.6,marginBottom:14}}>
+            Pour analyser les photos, une clé API Anthropic est nécessaire.<br/>
+            Elle sera sauvegardée localement sur ton appareil.<br/>
+            <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" style={{color:"#2563eb",fontWeight:600}}>Créer une clé → console.anthropic.com</a>
+          </div>
+          <input
+            type="password"
+            placeholder="sk-ant-api03-..."
+            value={apiKey}
+            onChange={e => setApiKey(e.target.value)}
+            style={{width:"100%",padding:"9px 12px",border:"1px solid #e2e8f0",borderRadius:8,fontSize:12,color:"#0f172a",outline:"none",marginBottom:10,fontFamily:"monospace"}}
+          />
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={()=>{
+              if (apiKey.startsWith("sk-")) {
+                localStorage.setItem("chasseur-api-key", apiKey);
+                setShowKeyInput(false);
+                analyser();
+              }
+            }} style={{flex:1,padding:"9px",background:"#0f172a",color:"#fff",border:"none",borderRadius:8,fontSize:12,fontWeight:700,cursor:"pointer"}}>
+              ✓ Sauvegarder et analyser
+            </button>
+            <button onClick={()=>setShowKeyInput(false)} style={{padding:"9px 14px",background:"#f1f5f9",color:"#64748b",border:"none",borderRadius:8,fontSize:12,cursor:"pointer"}}>
+              Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* ══ ÉTAPE : SOURCE ══ */}
+    {step==="source" && <>
+      <div style={S.header}>
+        <div style={{color:"#f1f5f9",fontWeight:800,fontSize:15}}>➕ Ajouter un objet</div>
+        <button onClick={onClose} style={S.closeBtn}>✕</button>
+      </div>
+      <div style={{padding:"20px",display:"flex",flexDirection:"column",gap:10}}>
+        <div style={{fontSize:11,color:"#64748b",marginBottom:4}}>Comment veux-tu créer la fiche ?</div>
+        {[
+          { id:"photo",  icon:"📸", label:"Analyser par photo(s)",       sub:"Claude identifie l'objet et génère la fiche automatiquement",  color:"#16a34a" },
+          { id:"pool",   icon:"🛒", label:"Depuis une annonce du pool",   sub:"Réutilise les données d'une annonce déjà analysée",            color:"#2563eb" },
+          { id:"manuel", icon:"✏️", label:"Saisie manuelle",              sub:"Remplis toi-même les informations",                            color:"#64748b" },
+        ].map(s => (
+          <div key={s.id} onClick={()=>{ setSource(s.id); setStep(s.id==="photo"?"photos":s.id==="pool"?"pool":"fiche"); }}
+            style={{border:`1.5px solid ${s.color}33`,borderRadius:12,padding:"14px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:12,transition:"all 0.15s"}}
+            onMouseEnter={e=>e.currentTarget.style.background="#f8fafc"}
+            onMouseLeave={e=>e.currentTarget.style.background="#fff"}>
+            <span style={{fontSize:24,flexShrink:0}}>{s.icon}</span>
+            <div>
+              <div style={{fontWeight:700,fontSize:13,color:"#0f172a"}}>{s.label}</div>
+              <div style={{fontSize:11,color:"#64748b",marginTop:2}}>{s.sub}</div>
+            </div>
+            <span style={{marginLeft:"auto",color:s.color,fontSize:16}}>→</span>
+          </div>
+        ))}
+      </div>
+    </>}
+
+    {/* ══ ÉTAPE : PHOTOS ══ */}
+    {step==="photos" && <>
+      <div style={S.header}>
+        <div style={{color:"#f1f5f9",fontWeight:800,fontSize:15}}>📸 Ajouter des photos</div>
+        <button onClick={onClose} style={S.closeBtn}>✕</button>
+      </div>
+      <div style={{padding:"20px",display:"flex",flexDirection:"column",gap:14}}>
+        {/* Zone upload */}
+        <div onClick={()=>fileRef.current?.click()}
+          style={{border:"2px dashed #e2e8f0",borderRadius:12,padding:"28px 20px",textAlign:"center",cursor:"pointer",background:"#f8fafc",transition:"all 0.15s"}}
+          onMouseEnter={e=>e.currentTarget.style.borderColor="#93c5fd"}
+          onMouseLeave={e=>e.currentTarget.style.borderColor="#e2e8f0"}>
+          <div style={{fontSize:32,marginBottom:8}}>📷</div>
+          <div style={{fontWeight:700,color:"#374151",fontSize:13}}>Cliquer pour choisir des photos</div>
+          <div style={{fontSize:11,color:"#94a3b8",marginTop:4}}>1 photo obligatoire · recto, verso, signature, détail…</div>
+          <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFiles} style={{display:"none"}}/>
+        </div>
+
+        {/* Aperçu photos */}
+        {photos.length > 0 && (
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            {photos.map((p,i) => (
+              <div key={i} style={{position:"relative"}}>
+                <img src={p.base64} alt="" style={{width:80,height:80,objectFit:"cover",borderRadius:8,border:"1px solid #e2e8f0"}}/>
+                <button onClick={()=>setPhotos(ph=>ph.filter((_,j)=>j!==i))}
+                  style={{position:"absolute",top:-6,right:-6,background:"#ef4444",border:"none",borderRadius:"50%",width:18,height:18,cursor:"pointer",color:"#fff",fontSize:10,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+                {i===0 && <div style={{position:"absolute",bottom:2,left:2,background:"rgba(0,0,0,0.6)",color:"#fff",fontSize:8,padding:"1px 4px",borderRadius:3}}>Principale</div>}
+              </div>
+            ))}
+            <div onClick={()=>fileRef.current?.click()}
+              style={{width:80,height:80,border:"2px dashed #e2e8f0",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",color:"#94a3b8",fontSize:20}}>+</div>
+          </div>
+        )}
+
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={()=>setStep("source")} style={{padding:"10px 14px",background:"#f1f5f9",color:"#64748b",border:"none",borderRadius:10,fontSize:12,cursor:"pointer"}}>← Retour</button>
+          <button onClick={analyser} disabled={photos.length===0||loading}
+            style={{flex:1,padding:"10px",background:photos.length===0?"#e2e8f0":"linear-gradient(135deg,#16a34a,#15803d)",color:photos.length===0?"#94a3b8":"#fff",border:"none",borderRadius:10,fontSize:13,fontWeight:700,cursor:photos.length===0?"default":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            {loading ? <><span style={{display:"inline-block",animation:"spin 0.8s linear infinite"}}>⟳</span> Analyse en cours…</> : "🔍 Analyser avec Claude"}
+          </button>
+        </div>
+      </div>
+    </>}
+
+    {/* ══ ÉTAPE : POOL ══ */}
+    {step==="pool" && <>
+      <div style={S.header}>
+        <div style={{color:"#f1f5f9",fontWeight:800,fontSize:15}}>🛒 Choisir depuis le pool</div>
+        <button onClick={onClose} style={S.closeBtn}>✕</button>
+      </div>
+      <div style={{padding:"16px",display:"flex",flexDirection:"column",gap:10}}>
+        <input type="text" placeholder="Rechercher par titre ou artiste…" value={poolSearch} onChange={e=>setPoolSearch(e.target.value)}
+          style={{...S.input,fontSize:12}}/>
+        <div style={{maxHeight:"50vh",overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>
+          {poolFiltered.map(o => (
+            <div key={o.url} onClick={()=>handleAddFromPool(o)}
+              style={{border:"1px solid #e2e8f0",borderRadius:10,padding:"10px 12px",cursor:"pointer",display:"flex",gap:10,alignItems:"center",transition:"all 0.12s"}}
+              onMouseEnter={e=>e.currentTarget.style.background="#f0fdf4"}
+              onMouseLeave={e=>e.currentTarget.style.background="#fff"}>
+              {o.img && <img src={o.img} alt="" style={{width:48,height:48,objectFit:"cover",borderRadius:6,flexShrink:0}} onError={e=>e.target.style.display="none"}/>}
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:700,fontSize:12,color:"#0f172a",lineHeight:1.3}}>{o.title}</div>
+                <div style={{fontSize:10,color:"#64748b",marginTop:1}}>{o.estimated} · {o.price}€</div>
+              </div>
+              <span style={{color:"#16a34a",fontSize:14,flexShrink:0}}>→</span>
+            </div>
+          ))}
+        </div>
+        <button onClick={()=>setStep("source")} style={{padding:"8px 14px",background:"#f1f5f9",color:"#64748b",border:"none",borderRadius:8,fontSize:12,cursor:"pointer"}}>← Retour</button>
+      </div>
+    </>}
+
+    {/* ══ ÉTAPE : FICHE ══ */}
+    {step==="fiche" && <>
+      <div style={S.header}>
+        <div style={{color:"#f1f5f9",fontWeight:800,fontSize:15}}>
+          {source==="photo" ? "🎨 Fiche générée par IA" : "📋 Fiche objet"}
+        </div>
+        <button onClick={onClose} style={S.closeBtn}>✕</button>
+      </div>
+      <div style={{padding:"16px 18px",display:"flex",flexDirection:"column",gap:10,maxHeight:"65vh",overflowY:"auto"}}>
+
+        {/* Erreur analyse */}
+        {analyseError && (
+          <div style={{background:"#fff1f2",border:"1.5px solid #fda4af",borderRadius:8,padding:"10px 12px",fontSize:11,color:"#be123c"}}>
+            ⚠️ <strong>Erreur d'analyse IA :</strong> {analyseError}
+            <div style={{marginTop:4,fontSize:10,color:"#9f1239"}}>Tu peux remplir les champs manuellement ci-dessous.</div>
+          </div>
+        )}
+
+        {/* Photo principale */}
+        {(photos.length>0||form.img) && (
+          <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+            <img src={photos[0]?.base64||form.img} alt="" style={{width:90,height:90,objectFit:"cover",borderRadius:8,border:"1px solid #e2e8f0",flexShrink:0}}/>
+            <div style={{flex:1}}>
+              {photos.length>1 && (
+                <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                  {photos.slice(1).map((p,i)=>(
+                    <img key={i} src={p.base64} alt="" style={{width:40,height:40,objectFit:"cover",borderRadius:5,border:"1px solid #e2e8f0"}}/>
+                  ))}
+                </div>
+              )}
+              {source==="photo" && (
+                <div style={{background:"#f0fdf4",border:"1px solid #86efac",borderRadius:7,padding:"6px 8px",marginTop:6,fontSize:10,color:"#15803d"}}>
+                  ✨ Fiche générée automatiquement — tu peux modifier tous les champs
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Match pool détecté ── */}
+        {poolMatch && !matchDismissed && (
+          <div style={{background:"#fef9c3",border:"1.5px solid #fbbf24",borderRadius:10,padding:"12px 14px"}}>
+            <div style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:8}}>
+              {poolMatch.img && <img src={poolMatch.img} alt="" style={{width:52,height:52,objectFit:"cover",borderRadius:7,flexShrink:0,border:"1px solid #fcd34d"}} onError={e=>e.target.style.display="none"}/>}
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:700,fontSize:11,color:"#92400e",marginBottom:3}}>🔍 Cet objet ressemble à une annonce du pool</div>
+                <div style={{fontSize:11,fontWeight:600,color:"#0f172a",lineHeight:1.3,marginBottom:2}}>{poolMatch.title}</div>
+                <div style={{fontSize:10,color:"#64748b"}}>{poolMatch.artiste} · {poolMatch.estimated} · {poolMatch.price}€</div>
+              </div>
+            </div>
+            <div style={{fontSize:10,color:"#92400e",marginBottom:10,lineHeight:1.5}}>
+              Est-ce bien le même objet ? Si oui, je récupère l'analyse complète (estimation, score, conseil de vente).
+            </div>
+            <div style={{display:"flex",gap:6}}>
+              <button onClick={()=>mergePoolData(poolMatch)}
+                style={{flex:1,padding:"7px",background:"#fbbf24",color:"#78350f",border:"none",borderRadius:7,fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                ✅ Oui, récupérer les données
+              </button>
+              <button onClick={()=>setMatchDismissed(true)}
+                style={{padding:"7px 12px",background:"rgba(0,0,0,0.06)",color:"#64748b",border:"none",borderRadius:7,fontSize:11,cursor:"pointer"}}>
+                Non, continuer sans
+              </button>
+            </div>
+          </div>
+        )}
+
+        {matchDismissed && poolMatch && (
+          <div style={{background:"#f0fdf4",border:"1px solid #86efac",borderRadius:7,padding:"6px 10px",fontSize:10,color:"#15803d",display:"flex",alignItems:"center",gap:6}}>
+            ✅ Données du pool intégrées — estimation et conseil mis à jour
+            <button onClick={()=>{setPoolMatch(null);setMatchDismissed(false);}} style={{marginLeft:"auto",background:"none",border:"none",color:"#94a3b8",cursor:"pointer",fontSize:11}}>✕</button>
+          </div>
+        )}
+
+        {/* Champs éditables */}
+        {[
+          ["Titre *",            "title",     "text"],
+          ["Artiste / Fabricant","artiste",   "text"],
+          ["Technique",          "technique", "text"],
+          ["Époque / Période",   "epoque",    "text"],
+          ["Signature",          "signature", "text"],
+          ["Estimation revente", "estimated", "text"],
+          ["URL source (optionnel)","url",    "text"],
+        ].map(([lbl,key]) => (
+          <div key={key}>
+            <div style={S.label}>{lbl}</div>
+            <input value={form[key]} onChange={e=>set(key,e.target.value)} style={S.input}/>
+          </div>
+        ))}
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div>
+            <div style={S.label}>Prix payé (€) *</div>
+            <input type="number" value={form.prixAchat} onChange={e=>set("prixAchat",+e.target.value)} style={S.input}/>
+          </div>
+          <div>
+            <div style={S.label}>État</div>
+            <select value={form.etat} onChange={e=>set("etat",e.target.value)} style={{...S.input,background:"#fff"}}>
+              {["excellent","très bon","bon","passable","à restaurer"].map(v=><option key={v} value={v}>{v}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {form.conseil && (
+          <div style={{background:"#eff6ff",border:"1px solid #93c5fd",borderRadius:8,padding:"8px 10px",fontSize:11,color:"#1d4ed8"}}>
+            💡 <strong>Conseil IA :</strong> {form.conseil}
+          </div>
+        )}
+
+        <div>
+          <div style={S.label}>Notes personnelles</div>
+          <textarea value={form.notes} onChange={e=>set("notes",e.target.value)} rows={2}
+            style={{...S.input,resize:"vertical",fontFamily:"inherit"}}/>
+        </div>
+
+        {/* Bouton enrichir */}
+        {enrichQA.length > 0 && (
+          <button onClick={()=>setStep("enrich")}
+            style={{padding:"9px 14px",background:"#fef3c7",color:"#92400e",border:"1px solid #fcd34d",borderRadius:8,fontSize:12,fontWeight:600,cursor:"pointer",textAlign:"left"}}>
+            ✨ Enrichir la fiche — {enrichQA.filter(x=>!x.a).length} question{enrichQA.filter(x=>!x.a).length>1?"s":""} en attente
+          </button>
+        )}
+      </div>
+
+      <div style={{padding:"12px 18px",borderTop:"1px solid #f1f5f9",display:"flex",gap:8}}>
+        <button onClick={()=>setStep(source==="photo"?"photos":source==="pool"?"pool":"source")}
+          style={{padding:"10px 14px",background:"#f1f5f9",color:"#64748b",border:"none",borderRadius:10,fontSize:12,cursor:"pointer"}}>← Retour</button>
+        <button onClick={handleSubmit} disabled={!form.title||!form.prixAchat}
+          style={{...S.primaryBtn,opacity:(!form.title||!form.prixAchat)?0.4:1}}>
+          ✅ Ajouter au stock
+        </button>
+      </div>
+    </>}
+
+    {/* ══ ÉTAPE : ENRICHIR ══ */}
+    {step==="enrich" && <>
+      <div style={S.header}>
+        <div style={{color:"#f1f5f9",fontWeight:800,fontSize:15}}>✨ Enrichir la fiche</div>
+        <button onClick={onClose} style={S.closeBtn}>✕</button>
+      </div>
+      <div style={{padding:"16px 18px",display:"flex",flexDirection:"column",gap:12,maxHeight:"60vh",overflowY:"auto"}}>
+        <div style={{fontSize:12,color:"#64748b",lineHeight:1.6}}>
+          Claude a besoin de ces informations pour affiner son analyse. <strong>Réponds à ce que tu sais</strong> — laisse vide sinon.
+        </div>
+        {enrichQA.map((item,i) => (
+          <div key={i}>
+            <div style={{fontSize:12,fontWeight:600,color:"#374151",marginBottom:5}}>❓ {item.q}</div>
+            <input value={item.a} onChange={e=>setEnrichQA(qa=>qa.map((x,j)=>j===i?{...x,a:e.target.value}:x))}
+              placeholder="Ta réponse (optionnel)…"
+              style={{...S.input,fontSize:12}}/>
+          </div>
+        ))}
+      </div>
+      <div style={{padding:"12px 18px",borderTop:"1px solid #f1f5f9",display:"flex",gap:8}}>
+        <button onClick={()=>setStep("fiche")} style={{padding:"10px 14px",background:"#f1f5f9",color:"#64748b",border:"none",borderRadius:10,fontSize:12,cursor:"pointer"}}>← Retour</button>
+        <button onClick={()=>{ if(source==="photo"&&photos.length>0) reanalyser(); else setStep("fiche"); }}
+          style={{flex:1,padding:"10px",background:"linear-gradient(135deg,#7c3aed,#6d28d9)",color:"#fff",border:"none",borderRadius:10,fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          {enrichLoading ? <><span style={{display:"inline-block",animation:"spin 0.8s linear infinite"}}>⟳</span> Réévaluation…</> : "🔄 Réévaluer avec Claude"}
+        </button>
+      </div>
+    </>}
+
+  </div>
+</div>
+```
+
+);
+}
+
+function FicheModal({ objet, onClose }) {
+const [copied, setCopied] = useState(false);
+const texte = ficheRevente(objet);
+const copy = () => { navigator.clipboard?.writeText(texte); setCopied(true); setTimeout(()=>setCopied(false),2000); };
+
+return (
+<div onClick={e=>e.target===e.currentTarget&&onClose()}
+style={{position:“fixed”,inset:0,zIndex:500,background:“rgba(0,0,0,0.7)”,backdropFilter:“blur(4px)”,display:“flex”,alignItems:“center”,justifyContent:“center”,padding:“20px 12px”}}>
+<div style={{background:”#fff”,borderRadius:16,width:“100%”,maxWidth:520,boxShadow:“0 24px 64px rgba(0,0,0,0.4)”,overflow:“hidden”}}>
+<div style={{background:”#0f172a”,padding:“14px 18px”,display:“flex”,justifyContent:“space-between”,alignItems:“center”}}>
+<div style={{color:”#f1f5f9”,fontWeight:800,fontSize:14}}>📋 Fiche de revente</div>
+<button onClick={onClose} style={{background:“rgba(255,255,255,0.1)”,border:“none”,borderRadius:8,width:30,height:30,cursor:“pointer”,color:”#94a3b8”,fontSize:14,display:“flex”,alignItems:“center”,justifyContent:“center”}}>✕</button>
+</div>
+<div style={{padding:“16px 18px”}}>
+{CANAUX.map((c,i) => {
+const { low, high } = parseEst(objet.estimated || “”);
+const mid = (low+high)/2;
+const prixNet = mid > 0 ? Math.round(mid * 0.65 * (1 - c.commission)) : null;
+const isActive = (objet.canalIdx||0) === i;
+return (
+<div key={c.id} style={{background:isActive?”#eff6ff”:”#f8fafc”,border:`1px solid ${isActive?"#93c5fd":"#e2e8f0"}`,borderRadius:8,padding:“10px 12px”,marginBottom:8,opacity:i<(objet.canalIdx||0)?0.4:1}}>
+<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”,marginBottom:4}}>
+<div style={{fontWeight:700,fontSize:12,color:”#0f172a”,display:“flex”,alignItems:“center”,gap:6}}>
+<span style={{fontSize:14}}>{c.emoji}</span> {c.label}
+<span style={{fontSize:9,color:”#64748b”,fontWeight:400}}>· {c.desc} · {c.delai}</span>
+</div>
+{prixNet && <div style={{fontWeight:800,fontSize:13,color:”#16a34a”}}>net ~{prixNet}€</div>}
+</div>
+{c.commission > 0 && <div style={{fontSize:9,color:”#94a3b8”}}>Commission {Math.round(c.commission*100)}%</div>}
+</div>
+);
+})}
+<div style={{marginTop:12}}>
+<div style={{fontSize:10,color:”#64748b”,fontWeight:600,marginBottom:6,textTransform:“uppercase”,letterSpacing:0.5}}>Texte d’annonce — cliquer pour sélectionner</div>
+<textarea readOnly value={texte} rows={6} onClick={e=>e.target.select()}
+style={{width:“100%”,padding:“10px 12px”,border:“1px solid #e2e8f0”,borderRadius:8,fontSize:11,color:”#374151”,fontFamily:“monospace”,resize:“none”,outline:“none”,background:”#f8fafc”,cursor:“text”}}/>
+<div style={{display:“flex”,justifyContent:“flex-end”,marginTop:6}}>
+<button onClick={copy} style={{padding:“6px 14px”,background:copied?”#16a34a”:”#0f172a”,color:”#fff”,border:“none”,borderRadius:7,fontSize:11,fontWeight:700,cursor:“pointer”,transition:“background 0.2s”}}>
+{copied ? “✓ Copié !” : “📋 Copier”}
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+);
+}
+
+function VenduModal({ objet, onSave, onClose }) {
+const [prixVente, setPrixVente] = useState(””);
+const [canal, setCanal]         = useState(CANAUX[objet.canalIdx||0].id);
+const [dateVente, setDateVente] = useState(new Date().toISOString().slice(0,10));
+
+const cObj = CANAUX.find(c=>c.id===canal) || CANAUX[0];
+const net  = prixVente ? Math.round(+prixVente * (1 - cObj.commission)) : null;
+const roi  = net ? net - (objet.prixAchat||0) : null;
+
+return (
+<div onClick={e=>e.target===e.currentTarget&&onClose()}
+style={{position:“fixed”,inset:0,zIndex:500,background:“rgba(0,0,0,0.7)”,backdropFilter:“blur(4px)”,display:“flex”,alignItems:“center”,justifyContent:“center”,padding:“20px 12px”}}>
+<div style={{background:”#fff”,borderRadius:16,width:“100%”,maxWidth:420,boxShadow:“0 24px 64px rgba(0,0,0,0.4)”,overflow:“hidden”}}>
+<div style={{background:”#0f172a”,padding:“14px 18px”,display:“flex”,justifyContent:“space-between”,alignItems:“center”}}>
+<div style={{color:”#f1f5f9”,fontWeight:800,fontSize:14}}>💰 Enregistrer la vente</div>
+<button onClick={onClose} style={{background:“rgba(255,255,255,0.1)”,border:“none”,borderRadius:8,width:30,height:30,cursor:“pointer”,color:”#94a3b8”,fontSize:14,display:“flex”,alignItems:“center”,justifyContent:“center”}}>✕</button>
+</div>
+<div style={{padding:“18px 20px”,display:“flex”,flexDirection:“column”,gap:12}}>
+<div style={{fontWeight:600,fontSize:13,color:”#0f172a”}}>{objet.title}</div>
+<div>
+<div style={{fontSize:10,color:”#64748b”,fontWeight:600,textTransform:“uppercase”,letterSpacing:0.5,marginBottom:4}}>Canal de vente</div>
+<div style={{display:“flex”,gap:6,flexWrap:“wrap”}}>
+{CANAUX.map(c=>(
+<button key={c.id} onClick={()=>setCanal(c.id)}
+style={{padding:“5px 10px”,borderRadius:8,border:`1.5px solid ${canal===c.id?"#2563eb":"#e2e8f0"}`,background:canal===c.id?”#eff6ff”:”#fff”,color:canal===c.id?”#2563eb”:”#64748b”,fontSize:11,fontWeight:600,cursor:“pointer”}}>
+{c.emoji} {c.label}
+</button>
+))}
+</div>
+</div>
+<div style={{display:“grid”,gridTemplateColumns:“1fr 1fr”,gap:10}}>
+<div>
+<div style={{fontSize:10,color:”#64748b”,fontWeight:600,textTransform:“uppercase”,letterSpacing:0.5,marginBottom:4}}>Prix de vente (€) *</div>
+<input type=“number” value={prixVente} onChange={e=>setPrixVente(e.target.value)} placeholder=“ex: 320”
+style={{width:“100%”,padding:“8px 10px”,border:“1px solid #e2e8f0”,borderRadius:8,fontSize:13,color:”#0f172a”,outline:“none”}}/>
+</div>
+<div>
+<div style={{fontSize:10,color:”#64748b”,fontWeight:600,textTransform:“uppercase”,letterSpacing:0.5,marginBottom:4}}>Date de vente</div>
+<input type=“date” value={dateVente} onChange={e=>setDateVente(e.target.value)}
+style={{width:“100%”,padding:“8px 10px”,border:“1px solid #e2e8f0”,borderRadius:8,fontSize:12,color:”#0f172a”,outline:“none”}}/>
+</div>
+</div>
+{net !== null && (
+<div style={{background:”#f0fdf4”,border:“1px solid #86efac”,borderRadius:10,padding:“12px 14px”,display:“grid”,gridTemplateColumns:“1fr 1fr 1fr”,gap:8}}>
+{[[“Vendu”,`${prixVente}€`,”#374151”],[“Net (−”+Math.round(cObj.commission*100)+”%)”,`${net}€`,”#2563eb”],[“ROI”,`${roi>=0?"+":""}${roi}€`,roi>=0?”#16a34a”:”#ef4444”]].map(([l,v,c])=>(
+<div key={l} style={{textAlign:“center”}}>
+<div style={{fontSize:9,color:”#64748b”,textTransform:“uppercase”,marginBottom:2}}>{l}</div>
+<div style={{fontSize:15,fontWeight:800,color:c}}>{v}</div>
+</div>
+))}
+</div>
+)}
+</div>
+<div style={{padding:“12px 20px”,borderTop:“1px solid #f1f5f9”,display:“flex”,gap:8}}>
+<button onClick={()=>{ if(!prixVente) return; onSave({statut:“vendu”,prixVente:+prixVente,canalVente:canal,dateVente,netVente:net,roiNet:roi}); onClose(); }}
+style={{flex:1,padding:“10px”,background:“linear-gradient(135deg,#7c3aed,#6d28d9)”,color:”#fff”,border:“none”,borderRadius:10,fontSize:13,fontWeight:700,cursor:“pointer”}}>
+💰 Confirmer la vente
+</button>
+<button onClick={onClose} style={{padding:“10px 14px”,background:”#f1f5f9”,color:”#64748b”,border:“none”,borderRadius:10,fontSize:12,cursor:“pointer”}}>Annuler</button>
+</div>
+</div>
+</div>
+);
+}
+
+function MesObjetsView({ onBack, tracker }) {
+const { objets, add, update, remove } = useObjets();
+const [filterStatut, setFilterStatut] = useState(“tous”);
+const [showAdd,   setShowAdd]   = useState(false);
+const [showFiche, setShowFiche] = useState(null); // objet
+const [showVendu, setShowVendu] = useState(null); // objet
+
+// Pré-remplir depuis les objets “achete” du tracker
+const trackerAchetes = Object.entries(tracker.data)
+.filter(([,d]) => d.statut===“achete”)
+.map(([url]) => url);
+
+const filtered = filterStatut===“tous” ? objets : objets.filter(o=>o.statut===filterStatut);
+
+// KPIs
+const totalInvesti  = objets.reduce((s,o)=>s+(o.prixAchat||0),0);
+const totalVenduNet = objets.filter(o=>o.statut===“vendu”).reduce((s,o)=>s+(o.netVente||0),0);
+const totalROI      = objets.filter(o=>o.statut===“vendu”).reduce((s,o)=>s+(o.roiNet||0),0);
+const { low:lp, high:hp } = { low:0, high:0 };
+const roiPotentiel  = objets.filter(o=>o.statut!==“vendu”).reduce((s,o)=>{
+const {low,high} = parseEst(o.estimated||””);
+return s + Math.round((low+high)/2*(1-0.2)) - (o.prixAchat||0);
+},0);
+const enAlerte      = objets.filter(o=>o.statut!==“vendu” && joursDepuis(o.dateAchat)>90).length;
+const vendus        = objets.filter(o=>o.statut===“vendu”);
+const tempsVente    = vendus.length ? Math.round(vendus.reduce((s,o)=>s+joursDepuis(o.dateAchat),0)/vendus.length) : null;
+
+const STATUT_COLORS = { achete:”#16a34a”, “en_vente”:”#2563eb”, vendu:”#7c3aed”, alerte:”#f59e0b” };
+
+return (
+<div style={{minHeight:“100vh”,background:“linear-gradient(160deg,#0f172a 0%,#1e3a5f 60%,#0f172a 100%)”,fontFamily:“system-ui,-apple-system,sans-serif”}}>
+<style>{`@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}} *{box-sizing:border-box;margin:0;padding:0} ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#1e293b}::-webkit-scrollbar-thumb{background:#475569;border-radius:2px}`}</style>
+
+```
+  {showAdd   && <AddObjetModal onAdd={add} onClose={()=>setShowAdd(false)}/>}
+  {showFiche && <FicheModal objet={showFiche} onClose={()=>setShowFiche(null)}/>}
+  {showVendu && <VenduModal objet={showVendu} onSave={p=>{ update(showVendu.id,p); setShowVendu(null); }} onClose={()=>setShowVendu(null)}/>}
+
+  {/* Header */}
+  <div style={{position:"sticky",top:0,zIndex:100,background:"rgba(15,23,42,0.95)",backdropFilter:"blur(16px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"12px 16px"}}>
+    <div style={{maxWidth:900,margin:"0 auto",display:"flex",alignItems:"center",gap:10}}>
+      <button onClick={onBack} style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,width:32,height:32,cursor:"pointer",color:"#94a3b8",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>⌂</button>
+      <div>
+        <div style={{color:"#f1f5f9",fontWeight:900,fontSize:16,letterSpacing:-0.3}}>📦 Mes Objets</div>
+        <div style={{color:"#64748b",fontSize:11,marginTop:1}}>Stock · Ventes · Performance</div>
+      </div>
+    </div>
+  </div>
+
+  <div style={{maxWidth:900,margin:"0 auto",padding:"16px 12px 40px"}}>
+
+    {/* ── Dashboard ── */}
+    <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"16px",marginBottom:14}}>
+      <div style={{fontSize:11,color:"#64748b",fontWeight:600,textTransform:"uppercase",letterSpacing:1,marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
+        📊 Tableau de bord
+        <span style={{flex:1,height:1,background:"rgba(255,255,255,0.05)"}}/>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(110px,1fr))",gap:8,marginBottom:enAlerte>0?12:0}}>
+        {[
+          ["Investi",     `${totalInvesti}€`,          "#60a5fa"],
+          ["ROI réalisé", totalROI>=0?`+${totalROI}€`:`${totalROI}€`, totalROI>=0?"#4ade80":"#f87171"],
+          ["ROI potentiel",`+${roiPotentiel}€`,        "#fbbf24"],
+          ["Objets",      `${objets.length}`,          "#c084fc"],
+          ["Tps vente",   tempsVente ? `${tempsVente}j` : "—",     "#f472b6"],
+        ].map(([l,v,c])=>(
+          <div key={l} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 8px",textAlign:"center"}}>
+            <div style={{fontSize:9,color:"#64748b",textTransform:"uppercase",letterSpacing:0.5,marginBottom:4}}>{l}</div>
+            <div style={{fontSize:17,fontWeight:800,color:c}}>{v}</div>
+          </div>
+        ))}
+      </div>
+      {enAlerte > 0 && (
+        <div style={{background:"rgba(234,179,8,0.08)",border:"1px solid rgba(234,179,8,0.25)",borderRadius:8,padding:"8px 12px",fontSize:11,color:"#fbbf24",display:"flex",alignItems:"center",gap:8}}>
+          ⚠️ <strong>{enAlerte} objet{enAlerte>1?"s":""} en stock depuis +90 jours</strong> — Envisager de baisser le prix ou changer de canal.
+        </div>
+      )}
+    </div>
+
+    {/* ── Filtres ── */}
+    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14,alignItems:"center"}}>
+      {[["tous","Tous"],["achete","✅ Acheté"],["en_vente","🔵 En vente"],["vendu","💰 Vendu"]].map(([v,l])=>(
+        <button key={v} onClick={()=>setFilterStatut(v)} style={{padding:"4px 10px",borderRadius:16,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,background:filterStatut===v?"#3b82f6":"rgba(255,255,255,0.08)",color:filterStatut===v?"#fff":"#94a3b8",transition:"all 0.15s"}}>
+          {l}{v==="tous"?` (${objets.length})`:""}{v==="en_vente"?` (${objets.filter(o=>o.statut==="en_vente").length})`:""}{v==="achete"?` (${objets.filter(o=>o.statut==="achete").length})`:""}{v==="vendu"?` (${objets.filter(o=>o.statut==="vendu").length})`:""}
+        </button>
+      ))}
+      <button onClick={()=>setShowAdd(true)} style={{marginLeft:"auto",padding:"6px 14px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,background:"linear-gradient(135deg,#16a34a,#15803d)",color:"#fff",display:"flex",alignItems:"center",gap:5}}>
+        ＋ Ajouter un objet
+      </button>
+    </div>
+
+    {/* ── Liste objets ── */}
+    {filtered.length === 0 ? (
+      <div style={{textAlign:"center",padding:"60px 20px"}}>
+        <div style={{fontSize:44,marginBottom:14}}>📦</div>
+        <div style={{fontWeight:700,color:"#64748b",fontSize:14,marginBottom:8}}>Aucun objet dans ce filtre</div>
+        <div style={{fontSize:12,color:"#475569",lineHeight:1.7,maxWidth:340,margin:"0 auto 20px"}}>
+          Marque des annonces comme <strong style={{color:"#f1f5f9"}}>✅ Acheté</strong> dans l'onglet Acheter, ou ajoute un objet manuellement.
+        </div>
+        <button onClick={()=>setShowAdd(true)} style={{padding:"10px 24px",borderRadius:10,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,background:"linear-gradient(135deg,#16a34a,#15803d)",color:"#fff"}}>
+          ＋ Ajouter mon premier objet
+        </button>
+      </div>
+    ) : (
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {filtered.map(o => {
+          const jours       = joursDepuis(o.dateAchat);
+          const isAlerte    = o.statut !== "vendu" && jours > 90;
+          const canalActif  = CANAUX[o.canalIdx||0];
+          const {low,high}  = parseEst(o.estimated||"");
+          const mid         = (low+high)/2;
+          const prixSuggere = mid > 0 ? Math.round(mid*0.65) : null;
+          const netEstime   = prixSuggere ? Math.round(prixSuggere*(1-canalActif.commission)) : null;
+          const roiEstime   = netEstime ? netEstime - (o.prixAchat||0) : null;
+
+          const borderColor = o.statut==="vendu" ? "#86efac" : isAlerte ? "#fcd34d" : o.statut==="en_vente" ? "#93c5fd" : "#e2e8f0";
+
+          return (
+            <div key={o.id} style={{background:"#fff",borderRadius:12,border:`1.5px solid ${borderColor}`,overflow:"hidden",boxShadow:"0 2px 8px rgba(0,0,0,0.06)"}}>
+
+              {/* Top */}
+              <div style={{display:"flex",gap:12,padding:"12px 14px 10px",alignItems:"flex-start"}}>
+                {o.img
+                  ? <img src={o.img} alt="" style={{width:68,height:68,objectFit:"cover",borderRadius:8,flexShrink:0,border:"1px solid #e5e7eb"}} onError={e=>{e.target.style.display="none"}}/>
+                  : <div style={{width:68,height:68,borderRadius:8,flexShrink:0,background:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>🖼</div>
+                }
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:700,fontSize:13,color:"#0f172a",lineHeight:1.3,marginBottom:3}}>{o.title}</div>
+                  <div style={{fontSize:11,color:"#64748b",marginBottom:6}}>{o.artiste}</div>
+                  <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                    <span style={{fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:10,background: o.statut==="vendu"?"#faf5ff":isAlerte?"#fefce8":o.statut==="en_vente"?"#eff6ff":"#f0fdf4", color:o.statut==="vendu"?"#7c3aed":isAlerte?"#ca8a04":o.statut==="en_vente"?"#2563eb":"#16a34a", border:`1px solid ${borderColor}`}}>
+                      {o.statut==="vendu"?"💰 Vendu":isAlerte?"⚠️ "+jours+"j en stock":o.statut==="en_vente"?"🔵 En vente":"✅ Acheté"}
+                    </span>
+                    <span style={{fontSize:9,padding:"2px 7px",borderRadius:10,background:"#f8fafc",color:"#475569",border:"1px solid #e2e8f0"}}>{canalActif.emoji} {canalActif.label}</span>
+                    {o.estimated && <span style={{fontSize:9,padding:"2px 7px",borderRadius:10,background:"#f0fdf4",color:"#15803d",border:"1px solid #86efac"}}>Est. {o.estimated}</span>}
+                  </div>
+                </div>
+                <button onClick={()=>remove(o.id)} style={{background:"none",border:"none",cursor:"pointer",color:"#cbd5e1",fontSize:14,padding:"2px",flexShrink:0}} title="Supprimer">✕</button>
+              </div>
+
+              {/* Métriques */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,background:"#f1f5f9",borderTop:"1px solid #f1f5f9"}}>
+                {o.statut==="vendu"
+                  ? [["Payé",`${o.prixAchat||"?"}€`,"#374151"],["Vendu",`${o.prixVente||"?"}€`,"#7c3aed"],["Net",`${o.netVente||"?"}€`,"#2563eb"],["ROI",`${o.roiNet>=0?"+":""}${o.roiNet||"?"}€`,o.roiNet>=0?"#16a34a":"#ef4444"]]
+                  : [["Payé",`${o.prixAchat||"?"}€`,"#374151"],["Canal",canalActif.label,"#2563eb"],["Prix suggéré",prixSuggere?`${prixSuggere}€`:"—","#16a34a"],["En stock",`${jours}j`,isAlerte?"#f59e0b":"#374151"]]
+                }.map(([l,v,c])=>(
+                  <div key={l} style={{background:"#fff",padding:"7px 5px",textAlign:"center"}}>
+                    <div style={{fontSize:8,color:"#94a3b8",textTransform:"uppercase",letterSpacing:0.3,marginBottom:2}}>{l}</div>
+                    <div style={{fontSize:12,fontWeight:700,color:c}}>{v}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Workflow canaux (sauf vendu) */}
+              {o.statut !== "vendu" && (
+                <div style={{padding:"8px 14px",background:"#f8fafc",borderTop:"1px solid #f1f5f9",display:"flex",alignItems:"center",gap:0,overflowX:"auto"}}>
+                  {CANAUX.map((c,i) => (
+                    <React.Fragment key={c.id}>
+                      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,flexShrink:0}}>
+                        <div onClick={()=>update(o.id,{canalIdx:i})} style={{width:26,height:26,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,cursor:"pointer",flexShrink:0,border:`2px solid ${i<(o.canalIdx||0)?"#16a34a":i===(o.canalIdx||0)?"#2563eb":"#e2e8f0"}`,background:i<(o.canalIdx||0)?"#16a34a":i===(o.canalIdx||0)?"#2563eb":"#fff",color:i<=(o.canalIdx||0)?"#fff":"#94a3b8",transition:"all 0.15s"}}>
+                          {i<(o.canalIdx||0)?"✓":i+1}
+                        </div>
+                        <div style={{fontSize:8,fontWeight:600,color:i===(o.canalIdx||0)?"#2563eb":"#94a3b8",whiteSpace:"nowrap"}}>{c.label}</div>
+                      </div>
+                      {i<CANAUX.length-1 && <div style={{flex:1,height:2,minWidth:12,background:i<(o.canalIdx||0)?"#16a34a":"#e2e8f0",marginBottom:14}}/>}
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
+
+              {/* Alerte recommandation */}
+              {isAlerte && (
+                <div style={{padding:"7px 14px",background:"#fefce8",borderTop:"1px solid #fef08a",fontSize:10,color:"#92400e",display:"flex",alignItems:"center",gap:6}}>
+                  💡 <strong>Recommandation :</strong> {jours} jours en stock. Baisser le prix de 15% ou passer au canal suivant ({CANAUX[Math.min((o.canalIdx||0)+1,3)].label}).
+                </div>
+              )}
+
+              {/* Actions */}
+              {o.statut !== "vendu" && (
+                <div style={{padding:"9px 14px",background:"#fff",borderTop:"1px solid #f1f5f9",display:"flex",gap:6,flexWrap:"wrap"}}>
+                  <button onClick={()=>setShowVendu(o)} style={{padding:"6px 11px",borderRadius:7,border:"none",cursor:"pointer",fontSize:10,fontWeight:700,background:"#0f172a",color:"#fff",display:"flex",alignItems:"center",gap:4}}>
+                    💰 Vendu
+                  </button>
+                  <button onClick={()=>setShowFiche(o)} style={{padding:"6px 11px",borderRadius:7,border:"none",cursor:"pointer",fontSize:10,fontWeight:700,background:"#f1f5f9",color:"#374151",display:"flex",alignItems:"center",gap:4}}>
+                    📋 Fiche revente
+                  </button>
+                  {o.statut==="achete" && (
+                    <button onClick={()=>update(o.id,{statut:"en_vente"})} style={{padding:"6px 11px",borderRadius:7,border:"none",cursor:"pointer",fontSize:10,fontWeight:700,background:"#eff6ff",color:"#2563eb",display:"flex",alignItems:"center",gap:4}}>
+                      🚀 Mettre en vente
+                    </button>
+                  )}
+                  {isAlerte && (o.canalIdx||0)<CANAUX.length-1 && (
+                    <button onClick={()=>update(o.id,{canalIdx:(o.canalIdx||0)+1})} style={{padding:"6px 11px",borderRadius:7,border:"none",cursor:"pointer",fontSize:10,fontWeight:700,background:"#fef3c7",color:"#92400e",display:"flex",alignItems:"center",gap:4}}>
+                      ⬇ Canal suivant
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Résultat vente */}
+              {o.statut === "vendu" && (
+                <div style={{padding:"8px 14px",background:"#f0fdf4",borderTop:"1px solid #86efac",fontSize:10,color:"#15803d",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span>✅ Vendu sur {CANAUX.find(c=>c.id===o.canalVente)?.label||o.canalVente} · ROI réalisé : <strong>{o.roiNet>=0?"+":""}{o.roiNet}€</strong></span>
+                  {o.dateVente && <span style={{color:"#94a3b8"}}>{o.dateVente}</span>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+    <div style={{textAlign:"center",color:"#334155",fontSize:10,marginTop:20}}>
+      {objets.length} objet{objets.length>1?"s":""} · localStorage · Données personnelles
+    </div>
+  </div>
+</div>
+```
+
+);
+}
+
+function MuchaFrame({ title, color1, color2, strokeColor, textColor }) {
+return (
+<svg viewBox=“0 0 560 130” xmlns=“http://www.w3.org/2000/svg” preserveAspectRatio=“xMidYMid slice”
+style={{display:“block”,width:“100%”,height:“100%”}}>
+
+```
+  {/* Fond : dégradé linéaire simple haut→bas, évite les collisions d'ID entre tuiles */}
+  <rect width="560" height="130" fill={color1}/>
+  <rect width="560" height="130" fill={color2} opacity="0.35"/>
+
+  {/* ══ LIANE HAUT ══ */}
+  <path d="M 44,5 C 180,1 380,1 516,5" fill="none" stroke={strokeColor} strokeWidth="4" strokeLinecap="round"/>
+  {/* Enroulements haut-gauche */}
+  <path d="M 100,5 C 96,-9 78,-13 70,-1 C 77,11 97,13 100,5" fill={strokeColor} opacity="0.85"/>
+  {/* Enroulement haut-centre */}
+  <path d="M 280,3 C 272,-11 260,-15 258,-3 C 264,10 278,12 280,3" fill={strokeColor} opacity="0.85"/>
+  <path d="M 280,3 C 288,-11 300,-15 302,-3 C 296,10 282,12 280,3" fill={strokeColor} opacity="0.85"/>
+  {/* Enroulement haut-droite */}
+  <path d="M 460,5 C 464,-9 482,-13 490,-1 C 483,11 463,13 460,5" fill={strokeColor} opacity="0.85"/>
+  {/* Fleurs haut */}
+  <ellipse cx="70" cy="-1" rx="8" ry="13" fill="#f5e8d0" stroke={strokeColor} strokeWidth="1" transform="rotate(90,70,-1)"/>
+  <ellipse cx="258" cy="-3" rx="7" ry="11" fill="#f5e8d0" stroke={strokeColor} strokeWidth="1" transform="rotate(90,258,-3)"/>
+  <ellipse cx="302" cy="-3" rx="7" ry="11" fill="#f5e8d0" stroke={strokeColor} strokeWidth="1" transform="rotate(90,302,-3)"/>
+  <ellipse cx="490" cy="-1" rx="8" ry="13" fill="#f5e8d0" stroke={strokeColor} strokeWidth="1" transform="rotate(90,490,-1)"/>
+
+  {/* ══ LIANES VERTICALES ══ */}
+  {/* Gauche */}
+  <path d="M 42,5 C 38,35 30,60 34,90 C 38,118 30,128 34,135" fill="none" stroke={strokeColor} strokeWidth="4.5" strokeLinecap="round"/>
+  <path d="M 34,45 C 16,37 4,24 10,12 C 17,2 34,7 34,45" fill={strokeColor} opacity="0.8"/>
+  <path d="M 34,88 C 14,80 2,66 8,54 C 16,44 34,50 34,88" fill={strokeColor} opacity="0.8"/>
+  <ellipse cx="10" cy="12" rx="8" ry="13" fill="#f5e8d0" stroke={strokeColor} strokeWidth="1" transform="rotate(-20,10,12)"/>
+  <ellipse cx="8" cy="54" rx="8" ry="13" fill="#f5e8d0" stroke={strokeColor} strokeWidth="1" transform="rotate(15,8,54)"/>
+  <path d="M 34,45 C 15,40 5,46 7,57 C 15,60 30,53 34,45Z" fill="#5a7a3a" opacity="0.55"/>
+  <path d="M 34,88 C 15,83 6,89 8,100 C 16,103 30,96 34,88Z" fill="#5a7a3a" opacity="0.55"/>
+  {/* Droite (miroir) */}
+  <path d="M 518,5 C 522,35 530,60 526,90 C 522,118 530,128 526,135" fill="none" stroke={strokeColor} strokeWidth="4.5" strokeLinecap="round"/>
+  <path d="M 526,45 C 544,37 556,24 550,12 C 543,2 526,7 526,45" fill={strokeColor} opacity="0.8"/>
+  <path d="M 526,88 C 546,80 558,66 552,54 C 544,44 526,50 526,88" fill={strokeColor} opacity="0.8"/>
+  <ellipse cx="550" cy="12" rx="8" ry="13" fill="#f5e8d0" stroke={strokeColor} strokeWidth="1" transform="rotate(20,550,12)"/>
+  <ellipse cx="552" cy="54" rx="8" ry="13" fill="#f5e8d0" stroke={strokeColor} strokeWidth="1" transform="rotate(-15,552,54)"/>
+  <path d="M 526,45 C 545,40 555,46 553,57 C 545,60 530,53 526,45Z" fill="#5a7a3a" opacity="0.55"/>
+  <path d="M 526,88 C 545,83 554,89 552,100 C 544,103 530,96 526,88Z" fill="#5a7a3a" opacity="0.55"/>
+
+  {/* ══ LIANE BAS ══ */}
+  <path d="M 44,125 C 180,129 380,129 516,125" fill="none" stroke={strokeColor} strokeWidth="4" strokeLinecap="round"/>
+  <path d="M 140,125 C 136,139 118,143 110,131 C 117,119 136,117 140,125" fill={strokeColor} opacity="0.8"/>
+  <path d="M 420,125 C 424,139 442,143 450,131 C 443,119 424,117 420,125" fill={strokeColor} opacity="0.8"/>
+  <ellipse cx="110" cy="131" rx="7" ry="11" fill="#f5e8d0" stroke={strokeColor} strokeWidth="1" transform="rotate(90,110,131)"/>
+  <ellipse cx="450" cy="131" rx="7" ry="11" fill="#f5e8d0" stroke={strokeColor} strokeWidth="1" transform="rotate(90,450,131)"/>
+
+  {/* ══ TITRE ══ */}
+  <text x="280" y="60" textAnchor="middle"
+    fontFamily="'Playfair Display', Georgia, serif"
+    fontSize="30" fontWeight="700"
+    fill={textColor||"#2c1a0e"} opacity="0.85" letterSpacing="3">{title.toUpperCase()}</text>
+
+  {/* Ligne déco sous titre */}
+  <path d="M 185,80 C 230,78 260,82 280,80 C 300,82 330,78 375,80"
+    fill="none" stroke={strokeColor} strokeWidth="1.2" opacity="0.5"/>
+  <circle cx="280" cy="80" r="3" fill={strokeColor} opacity="0.5"/>
+  <circle cx="185" cy="80" r="2" fill={strokeColor} opacity="0.35"/>
+  <circle cx="375" cy="80" r="2" fill={strokeColor} opacity="0.35"/>
+
+  {/* Bordure intérieure fine */}
+  <rect x="6" y="6" width="548" height="118" rx="4" fill="none" stroke={strokeColor} strokeWidth="1" opacity="0.25"/>
+</svg>
+```
+
+);
+}
+
+function HomePage({ onSelectRole, prefs, onSavePrefs }) {
+const [showPrefs, setShowPrefs] = useState(false);
+
+const hasPrefs = prefs.types?.length > 0 || (prefs.budget && prefs.budget < 1000);
+const prefsSummary = () => {
+const parts = [];
+if (prefs.types?.length > 0) parts.push(prefs.types.map(id => OBJECT_TYPES.find(t=>t.id===id)?.icon||id).join(” “));
+if (prefs.budget && prefs.budget < 1000) parts.push(`≤ ${prefs.budget}€`);
+return parts.join(” · “);
+};
+const poolForPrefs = POOL.filter(o => {
+const typeOk = !prefs.types?.length || prefs.types.some(tid => matchesType(o, tid));
+const budgetOk = !prefs.budget || o.price <= prefs.budget;
+return typeOk && budgetOk;
+});
+
+const roles = [
+{ id:“acheter”,    title:“Acheter”,    icon:“🛒”, desc:“Annonces scorées et filtrées. Carte interactive, suivi, rapports experts.”,   c1:”#e8c870”, c2:”#b87a28”, stroke:”#6b3810”, text:”#2c1a0e”, available:true  },
+{ id:“mes-objets”, title:“Mes Objets”, icon:“📦”, desc:“Gérer mon stock d’objets achetés, suivre mes ventes et mesurer mon ROI réel.”, c1:”#d4edda”, c2:”#8aba96”, stroke:”#3a7a4a”, text:”#1a3a22”, available:true  },
+{ id:“vendre”,     title:“Vendre”,     icon:“💶”, desc:“Workflow d’optimisation par canal. Conseils pricing, fiche revente.”,          c1:”#a0b8d8”, c2:”#5a7aa0”, stroke:”#2a4a6a”, text:”#f0f8ff”, available:false },
+{ id:“evaluer”,    title:“Évaluer”,    icon:“🔍”, desc:“Photos ou URL d’annonce pour une estimation experte et analyse de marché.”,    c1:”#c4a8d8”, c2:”#7a5aaa”, stroke:”#4a2a6a”, text:”#f5f0ff”, available:false },
+];
+
+return (
+<div style={{minHeight:“100vh”,background:”#f0ead8”,fontFamily:”‘Cormorant Garamond’,Georgia,serif”}}>
+<style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}} *{box-sizing:border-box;margin:0;padding:0} ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#e8ddd0}::-webkit-scrollbar-thumb{background:#c9a84c;border-radius:2px} .mucha-card{transition:box-shadow 0.2s, transform 0.18s !important;} .mucha-card:not([data-disabled]):hover{box-shadow:0 10px 36px rgba(44,26,14,0.22) !important; transform:translateY(-3px) !important;}`}</style>
+
+```
+  {showPrefs && <PrefsPanel prefs={prefs} onSave={onSavePrefs} onClose={()=>setShowPrefs(false)}/>}
+
+  {/* Header */}
+  <div style={{background:"#2c1a0e",borderBottom:"2px solid #c9a84c",padding:"13px 20px",display:"flex",alignItems:"center",gap:12}}>
+    <span style={{fontSize:20}}>🎯</span>
+    <div>
+      <div style={{fontFamily:"'Playfair Display',serif",color:"#f0e0c0",fontSize:18,letterSpacing:0.5}}>Chasseur d'Opportunités</div>
+      <div style={{color:"#9a7d5a",fontSize:11,fontStyle:"italic",marginTop:1}}>Art & Antiquités belges · 2ememain.be</div>
+    </div>
+  </div>
+
+  <div style={{maxWidth:580,margin:"0 auto",padding:"24px 16px 36px"}}>
+
+    {/* Label section */}
+    <div style={{fontSize:10,color:"#7a5c3a",textTransform:"uppercase",letterSpacing:3,textAlign:"center",marginBottom:20,fontFamily:"'Playfair Display',serif",display:"flex",alignItems:"center",gap:10}}>
+      <span style={{flex:1,height:1,background:"linear-gradient(90deg,transparent,#c9a84c,transparent)"}}/>
+      Que voulez-vous faire ?
+      <span style={{flex:1,height:1,background:"linear-gradient(90deg,#c9a84c,transparent)"}}/>
+    </div>
+
+    {/* Cards */}
+    <div style={{display:"flex",flexDirection:"column",gap:14}}>
+      {roles.map((r,i) => (
+        <div key={r.id}
+          className="mucha-card"
+          data-disabled={!r.available || undefined}
+          onClick={() => r.available && onSelectRole(r.id)}
+          style={{
+            borderRadius:10,
+            border:`2px solid ${r.stroke}88`,
+            overflow:"hidden",
+            cursor: r.available ? "pointer" : "default",
+            opacity: r.available ? 1 : 0.5,
+            boxShadow:"0 3px 14px rgba(44,26,14,0.12)",
+            animation:`fadeIn 0.4s ease-out ${i*0.08}s both`,
+          }}>
+
+          {/* Zone art Mucha */}
+          <div style={{height:130,position:"relative",overflow:"hidden"}}>
+            <MuchaFrame title={r.title} color1={r.c1} color2={r.c2} strokeColor={r.stroke} textColor={r.text}/>
+            {/* Badge bientôt */}
+            {!r.available && (
+              <span style={{position:"absolute",top:10,right:12,fontSize:8,fontWeight:700,color:"#6b3810",background:"rgba(245,232,208,0.85)",border:`1px solid ${r.stroke}55`,padding:"2px 8px",borderRadius:3,letterSpacing:1,textTransform:"uppercase"}}>
+                Bientôt
+              </span>
+            )}
+          </div>
+
+          {/* Corps — sans répétition du titre */}
+          <div style={{background:"#fffdf8",padding:"13px 18px 15px",borderTop:`1.5px solid ${r.stroke}33`}}>
+            <div style={{fontSize:12,color:"#7a5c3a",fontStyle:"italic",marginBottom:7}}>{r.desc}</div>
+
+            {/* Préférences — Acheter uniquement */}
+            {r.id === "acheter" && (
+              <div onClick={e=>{e.stopPropagation();setShowPrefs(true);}}
+                style={{borderTop:"1px solid #e8ddd0",paddingTop:9,display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",marginTop:8}}>
+                <div>
+                  <div style={{fontSize:9,color:"#9a7d5a",fontWeight:600,textTransform:"uppercase",letterSpacing:0.5,marginBottom:2}}>⚙️ Mes préférences</div>
+                  {hasPrefs
+                    ? <div style={{fontSize:11,color:"#6b3810",fontWeight:600}}>{prefsSummary()} · <span style={{color:"#2a6a2a"}}>{poolForPrefs.length} annonces</span></div>
+                    : <div style={{fontSize:10,color:"#b8a090",fontStyle:"italic"}}>Non configurées</div>
+                  }
+                </div>
+                <span style={{fontSize:10,fontWeight:700,color:"#6b3810",background:"#f5ede0",border:"1px solid #c9a84c66",borderRadius:4,padding:"3px 10px",flexShrink:0,fontFamily:"'Cormorant Garamond',serif"}}>
+                  {hasPrefs ? "Modifier" : "Configurer"}
+                </span>
+              </div>
+            )}
+
+            {r.available && (
+              <div style={{marginTop:10,fontSize:12,color:"#8a5c20",fontStyle:"italic",display:"flex",alignItems:"center",gap:5}}>
+                Accéder <span>→</span>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div style={{textAlign:"center",fontSize:10,color:"#c9a84c88",padding:"16px 0",fontStyle:"italic",letterSpacing:1}}>
+      — Chasseur d'Opportunités · Art & Antiquités belges —
+    </div>
+  </div>
+</div>
+```
+
+);
+}
+
+function ObjectTypePicker({ selected, onChange }) {
+return (
+<div style={{display:“flex”,gap:5,flexWrap:“wrap”,marginBottom:8}}>
+{OBJECT_TYPES.map(t => (
+<button key={t.id} onClick={()=>onChange(t.id)} style={{
+padding:“4px 10px”,borderRadius:16,border:“none”,cursor:“pointer”,fontSize:11,fontWeight:600,
+background: selected===t.id ? “#3b82f6” : “rgba(255,255,255,0.08)”,
+color:       selected===t.id ? “#fff”    : “#94a3b8”,
+transition:“all 0.15s”,
+display:“flex”,alignItems:“center”,gap:4,
+}}>
+<span>{t.icon}</span> {t.label}
+</button>
+))}
+</div>
+);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION 8 — APP PRINCIPALE
+// ═══════════════════════════════════════════════════════════════
+function App() {
+const { prefs, save: savePrefs } = usePreferences();
+const [screen,        setScreen]        = useState(“home”);
+const [filterCat,     setFilterCat]     = useState(“all”);
+const [filterBudget,  setFilterBudget]  = useState(prefs.budget || 500);
+const [filterSearch,  setFilterSearch]  = useState(””);
+const [filterReport,  setFilterReport]  = useState(false);
+const [filterStatut,  setFilterStatut]  = useState(“hide_ni”);
+// filterType : si prefs.types a 1 seul type on le préselectionne, sinon “tout”
+const [filterType,    setFilterType]    = useState(
+prefs.types?.length === 1 ? prefs.types[0] : “tout”
+);
+const [sortBy,        setSortBy]        = useState(“score”);
+const [viewMode,      setViewMode]      = useState(“liste”);
+const [reportAnnonce, setReportAnnonce] = useState(null);
+
+const tracker = useTracker();
+const { scanning, progress, entries, batchIdx, sorted, startScan, stopScan } = useScan(POOL);
+
+// Quand on entre dans l’app Acheter, appliquer les prefs
+const handleSelectRole = role => {
+if (role === “acheter”) {
+if (prefs.budget) setFilterBudget(prefs.budget);
+if (prefs.types?.length === 1) setFilterType(prefs.types[0]);
+else setFilterType(“tout”);
+setScreen(“acheter”);
+}
+if (role === “mes-objets”) setScreen(“mes-objets”);
+};
+
+// Page d’accueil
+if (screen === “home”) {
+return <HomePage onSelectRole={handleSelectRole} prefs={prefs} onSavePrefs={savePrefs}/>;
+}
+
+// Mes Objets
+if (screen === “mes-objets”) {
+return <MesObjetsView onBack={()=>setScreen(“home”)} tracker={tracker}/>;
+}
+
+const matchSearch = o => {
+if (!filterSearch.trim()) return true;
+const q = filterSearch.toLowerCase();
+return (o.title+” “+o.artiste+” “+(o.desc||””)+” “+(o.reason||””)).toLowerCase().includes(q);
+};
+
+const applyFilters = o => {
+// Type : prefs multi-types OU filtre simple dans l’app
+const typeOk = (() => {
+if (filterType !== “tout”) return matchesType(o, filterType);
+if (prefs.types?.length > 0) return prefs.types.some(tid => matchesType(o, tid));
+return true;
+})();
+return (
+o.price <= filterBudget
+&& (filterCat===“all” || catEntry(o)===filterCat)
+&& (!filterReport || !!REPORTS[o.url])
+&& typeOk
+&& (
+filterStatut===“all”     ? true :
+filterStatut===“hide_ni” ? tracker.data[o.url]?.statut !== “non_interesse” :
+filterStatut===“suivi”   ? !!tracker.data[o.url]?.statut :
+(tracker.data[o.url]?.statut||“none”) === filterStatut
+)
+&& matchSearch(o)
+);
+};
+
+const poolFiltered = POOL.filter(applyFilters)
+.sort((a,b) => sortBy===“score” ? scoreEntry(b)-scoreEntry(a) : sortBy===“price” ? a.price-b.price : (b.confidence||0)-(a.confidence||0));
+
+const scanFiltered = entries.filter(({o}) => applyFilters(o));
+const activeCount  = viewMode===“scan” ? scanFiltered.length : poolFiltered.length;
+
+const catCounts = {};
+POOL.forEach(o => { const c=catEntry(o); catCounts[c]=(catCounts[c]||0)+1; });
+const reportCount  = Object.keys(REPORTS).length;
+const suiviCount   = Object.keys(tracker.data).length;
+
+const TABS = [
+{ id:“liste”,  label:“📋 Liste” },
+{ id:“scan”,   label:`⚡ Scan${entries.length ? ` · ${entries.length}` : ""}` },
+{ id:“carte”,  label:“🗺 Carte” },
+{ id:“suivi”,  label:`📊 Suivi${suiviCount ? ` · ${suiviCount}` : ""}` },
+];
+const CATS = [“all”,“exceptionnel”,“élevé”,“moyen”];
+const CLABELS = { all:“Toutes”, exceptionnel:“🏆 Exceptionnel”,“élevé”:“🔵 Élevé”,moyen:“🟡 Moyen” };
+
+return (
+<div style={{minHeight:“100vh”,background:“linear-gradient(160deg,#0f172a 0%,#1e3a5f 60%,#0f172a 100%)”,fontFamily:“system-ui,-apple-system,sans-serif”}}>
+<style>{`@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}} @keyframes spin{to{transform:rotate(360deg)}} @keyframes slideIn{from{opacity:0;transform:translateY(-14px) scale(0.97)}to{opacity:1;transform:none}} *{box-sizing:border-box;margin:0;padding:0} ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#1e293b}::-webkit-scrollbar-thumb{background:#475569;border-radius:2px} input[type=text]{outline:none}`}</style>
+
+```
+  {reportAnnonce && <ReportModal o={reportAnnonce} onClose={()=>setReportAnnonce(null)}/>}
+
+  {/* HEADER */}
+  <div style={{position:"sticky",top:0,zIndex:100,background:"rgba(15,23,42,0.95)",backdropFilter:"blur(16px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"12px 16px"}}>
+    <div style={{maxWidth:900,margin:"0 auto"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+        <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
+          <button onClick={()=>setScreen("home")} title="Accueil" style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,width:32,height:32,cursor:"pointer",color:"#94a3b8",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>⌂</button>
+          <div>
+            <div style={{color:"#f1f5f9",fontWeight:900,fontSize:17,letterSpacing:-0.5}}>🛒 Acheter — Chasseur d'Opportunités</div>
+            <div style={{color:"#64748b",fontSize:11,marginTop:2}}>
+              {POOL.length} annonces · <span style={{color:"#4ade80"}}>{catCounts.exceptionnel||0} exceptionnelles</span> · <span style={{color:"#60a5fa"}}>{catCounts["élevé"]||0} élevées</span>
+              {reportCount>0 && <span style={{color:"#16a34a",marginLeft:6}}>· {reportCount} rapport{reportCount>1?"s":""}</span>}
+              {suiviCount>0 && <span style={{color:"#a78bfa",marginLeft:6}}>· {suiviCount} suivi{suiviCount>1?"s":""}</span>}
+              {scanning && <span style={{color:"#fbbf24",marginLeft:6,animation:"blink 1s infinite"}}>● SCAN {progress}%</span>}
+            </div>
+          </div>
+        </div>
+        <button onClick={()=>scanning?stopScan():(setViewMode("scan"),startScan())} style={{
+          padding:"9px 18px",borderRadius:10,border:"none",cursor:"pointer",fontSize:13,fontWeight:800,
+          background:scanning?"linear-gradient(135deg,#dc2626,#b91c1c)":"linear-gradient(135deg,#16a34a,#15803d)",
+          color:"#fff",boxShadow:scanning?"0 0 20px #dc262666":"0 0 20px #16a34a55",
+          display:"flex",alignItems:"center",gap:7,letterSpacing:0.3,transition:"all 0.2s",
+        }}>
+          {scanning?<><span style={{display:"inline-block",animation:"spin 0.7s linear infinite"}}>⟳</span>STOP</>:"⚡ SCANNER"}
+        </button>
+      </div>
+
+      {(scanning||progress>0) && (
+        <div style={{height:3,background:"#1e293b",borderRadius:3,marginBottom:8,overflow:"hidden"}}>
+          <div style={{height:"100%",background:scanning?"linear-gradient(90deg,#16a34a,#4ade80)":"#334155",width:`${progress}%`,transition:"width 0.4s"}}/>
+        </div>
+      )}
+
+      <div style={{display:"flex",gap:6,marginBottom:8}}>
+        {TABS.map(tab=>(
+          <button key={tab.id} onClick={()=>setViewMode(tab.id)} style={{
+            padding:"6px 14px",borderRadius:20,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,
+            background:viewMode===tab.id?"#3b82f6":"rgba(255,255,255,0.08)",
+            color:viewMode===tab.id?"#fff":"#94a3b8",transition:"all 0.15s",
+          }}>{tab.label}</button>
+        ))}
+      </div>
+
+      <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
+        {CATS.map(c=>(
+          <button key={c} onClick={()=>setFilterCat(c)} style={{
+            padding:"4px 10px",borderRadius:16,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,
+            background:filterCat===c?(CAT_COLOR[c]||"#3b82f6"):"rgba(255,255,255,0.08)",
+            color:filterCat===c?"#fff":"#94a3b8",transition:"all 0.15s",
+          }}>{CLABELS[c]}{c!=="all"&&catCounts[c]?` (${catCounts[c]})`:""}</button>
+        ))}
+      </div>
+
+      <ObjectTypePicker selected={filterType} onChange={setFilterType}/>
+
+      <div style={{position:"relative",marginBottom:8}}>
+        <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"#64748b",fontSize:13,pointerEvents:"none"}}>🔍</span>
+        <input type="text" placeholder="Rechercher : artiste, titre, technique, lieu…"
+          value={filterSearch} onChange={e=>setFilterSearch(e.target.value)}
+          style={{width:"100%",padding:"7px 34px 7px 32px",background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,color:"#f1f5f9",fontSize:12}}
+        />
+        {filterSearch && <button onClick={()=>setFilterSearch("")} style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#64748b",cursor:"pointer",fontSize:14}}>✕</button>}
+      </div>
+
+      <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,flex:1,minWidth:160}}>
+          <span style={{color:"#94a3b8",fontSize:11,whiteSpace:"nowrap"}}>Budget: <b style={{color:"#f1f5f9"}}>{filterBudget}€</b></span>
+          <input type="range" min={20} max={1000} step={10} value={filterBudget} onChange={e=>setFilterBudget(+e.target.value)} style={{flex:1,accentColor:"#3b82f6",cursor:"pointer"}}/>
+        </div>
+        <button onClick={()=>setFilterReport(r=>!r)} style={{padding:"4px 10px",borderRadius:16,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,whiteSpace:"nowrap",background:filterReport?"#16a34a":"rgba(255,255,255,0.08)",color:filterReport?"#fff":"#94a3b8",transition:"all 0.15s"}}>
+          📋 Avec rapport
+        </button>
+        {suiviCount > 0 && (
+          <select value={filterStatut} onChange={e=>setFilterStatut(e.target.value)} style={{background:"rgba(255,255,255,0.08)",color:"#f1f5f9",border:"1px solid rgba(255,255,255,0.12)",borderRadius:8,padding:"4px 8px",fontSize:11,cursor:"pointer"}}>
+            <option value="hide_ni" style={{background:"#1e293b"}}>🚫 Sans "pas intéressé"</option>
+            <option value="all"     style={{background:"#1e293b"}}>Tous (incl. 🚫)</option>
+            <option value="suivi"   style={{background:"#1e293b"}}>📊 En suivi seulement</option>
+            {STATUTS.map(s=><option key={s.id} value={s.id} style={{background:"#1e293b"}}>{s.label}</option>)}
+          </select>
+        )}
+        {suiviCount === 0 && (
+          <select value={filterStatut} onChange={e=>setFilterStatut(e.target.value)} style={{background:"rgba(255,255,255,0.08)",color:"#f1f5f9",border:"1px solid rgba(255,255,255,0.12)",borderRadius:8,padding:"4px 8px",fontSize:11,cursor:"pointer"}}>
+            <option value="hide_ni" style={{background:"#1e293b"}}>🚫 Sans "pas intéressé"</option>
+            <option value="all"     style={{background:"#1e293b"}}>Tous</option>
+          </select>
+        )}
+        {viewMode==="liste" && (
+          <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{background:"rgba(255,255,255,0.08)",color:"#f1f5f9",border:"1px solid rgba(255,255,255,0.12)",borderRadius:8,padding:"4px 8px",fontSize:11,cursor:"pointer"}}>
+            <option value="score" style={{background:"#1e293b"}}>Score ↓</option>
+            <option value="conf"  style={{background:"#1e293b"}}>Confiance ↓</option>
+            <option value="price" style={{background:"#1e293b"}}>Prix ↑</option>
+          </select>
+        )}
+        {viewMode !== "carte" && (
+          <span style={{fontSize:11,color:"#4ade80",fontWeight:700,background:"#16a34a22",padding:"4px 10px",borderRadius:8}}>{activeCount} résultats</span>
+        )}
+      </div>
+    </div>
+  </div>
+
+  {/* CONTENU */}
+  <div style={{maxWidth:900,margin:"0 auto",padding:"14px 12px 32px"}}>
+
+    {viewMode==="carte" && (
+      <MapView pool={poolFiltered} onOpenReport={o=>setReportAnnonce(o)}/>
+    )}
+
+    {viewMode==="suivi" && <TrackingView tracker={tracker}/>}
+
+    {viewMode==="scan" && (
+      <>
+        {scanning && (
+          <div style={{display:"flex",alignItems:"center",gap:8,background:"rgba(22,163,74,0.1)",border:"1px solid #16a34a33",borderRadius:10,padding:"8px 14px",marginBottom:12}}>
+            <span style={{color:"#4ade80",animation:"blink 1s infinite",fontSize:14}}>●</span>
+            <span style={{color:"#4ade80",fontWeight:700,fontSize:12}}>Scan en cours… {progress}% — {entries.length} opportunités</span>
+            <span style={{color:"#64748b",marginLeft:"auto",fontSize:10}}>Nouvelles ↑ en tête</span>
+          </div>
+        )}
+        {!scanning && sorted && entries.length > 0 && (
+          <div style={{display:"flex",alignItems:"center",gap:8,background:"rgba(22,163,74,0.07)",border:"1px solid #16a34a22",borderRadius:10,padding:"8px 14px",marginBottom:12}}>
+            <span>🏆</span>
+            <div style={{flex:1}}>
+              <div style={{color:"#4ade80",fontWeight:700,fontSize:12}}>Classement final — {entries.length} opportunités triées par score</div>
+              <div style={{color:"#64748b",fontSize:10}}>De la plus avantageuse à la moins avantageuse</div>
+            </div>
+            <button onClick={()=>(setViewMode("scan"),startScan())} style={{background:"#1e3a5f",color:"#60a5fa",border:"1px solid #60a5fa44",borderRadius:7,padding:"3px 10px",fontSize:10,fontWeight:700,cursor:"pointer"}}>↺ Relancer</button>
+          </div>
+        )}
+        {entries.length===0 && !scanning && (
+          <div style={{textAlign:"center",padding:"70px 20px"}}>
+            <div style={{fontSize:52,marginBottom:14}}>⚡</div>
+            <div style={{fontWeight:800,color:"#94a3b8",fontSize:15,marginBottom:8}}>Scanner le pool</div>
+            <div style={{fontSize:12,color:"#64748b",lineHeight:1.8,maxWidth:380,margin:"0 auto 20px"}}>
+              Analyse les {POOL.length} annonces dans un ordre aléatoire.<br/>Classement final par score à la fin.
+            </div>
+            <button onClick={startScan} style={{padding:"12px 28px",borderRadius:12,border:"none",cursor:"pointer",fontSize:14,fontWeight:800,background:"linear-gradient(135deg,#16a34a,#15803d)",color:"#fff",boxShadow:"0 0 28px #16a34a55"}}>⚡ Analyser le pool</button>
+          </div>
+        )}
+        {scanFiltered.length===0 && entries.length>0 && (
+          <div style={{textAlign:"center",color:"#64748b",padding:"20px",fontSize:13}}>Aucune annonce dans ces filtres.</div>
+        )}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:12}}>
+          {scanFiltered.map(({o,bi})=><Card key={o.url} o={o} isNew={!sorted&&batchIdx-bi<=1} age={batchIdx-bi} tracker={tracker}/>)}
+        </div>
+      </>
+    )}
+
+    {viewMode==="liste" && (
+      <>
+        {poolFiltered.length===0 && (
+          <div style={{textAlign:"center",color:"#64748b",padding:"40px 20px",fontSize:13}}>Aucune annonce dans ces filtres.</div>
+        )}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:12}}>
+          {poolFiltered.map(o=><Card key={o.url} o={o} isNew={false} age={99} tracker={tracker}/>)}
+        </div>
+      </>
+    )}
+
+    <div style={{textAlign:"center",color:"#334155",fontSize:10,marginTop:20,lineHeight:1.7}}>
+      {POOL.length} annonces · {reportCount} rapport{reportCount>1?"s":""} · 2ememain.be · Estimations indicatives
+      {DATA_VERSION && <span style={{marginLeft:6,opacity:0.5}}>· v{DATA_VERSION}</span>}
+    </div>
+  </div>
+</div>
+```
+
+);
+}
+
+ReactDOM.createRoot(document.getElementById(‘root’)).render(React.createElement(App));
+</script></body></html>
