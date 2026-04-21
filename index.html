@@ -3,24 +3,52 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Chasseur Opportunités</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0f172a;color:#f1f5f9}#root{min-height:100vh}#loading{position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;font-family:system-ui;color:#94a3b8;font-size:14px;z-index:9999}</style>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f172a;color:#f1f5f9;font-family:system-ui}
+#loading{position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;
+justify-content:center;flex-direction:column;gap:12px;z-index:9999}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:32px;height:32px;border:3px solid #334155;border-top-color:#c9a84c;
+border-radius:50%;animation:spin 0.8s linear infinite}
+</style>
 </head>
 <body>
 <div id="loading">
-  <div style="font-size:32px">🎯</div>
-  <div>Chargement de l'app...</div>
-  <div style="font-size:11px;margin-top:4px;color:#475569">Première ouverture — ~10 secondes</div>
+  <div class="spinner"></div>
+  <div style="font-size:14px;color:#94a3b8">Compilation en cours...</div>
+  <div style="font-size:11px;color:#475569">Safari iOS — 20-30 secondes</div>
 </div>
 <div id="root"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-<script type="text/babel" data-presets="react" data-type="module">
-const { useState, useRef, useCallback, useEffect } = React;
+<script>
+// Charger Babel de façon asynchrone
+window.addEventListener('load', function() {
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js';
+  s.onload = function() {
+    var appScript = document.getElementById('app-source');
+    var code = appScript.textContent;
+    try {
+      var compiled = Babel.transform(code, {presets: ['react']}).code;
+      var fn = new Function('React','ReactDOM','L', compiled);
+      fn(React, ReactDOM, window.L);
+      document.getElementById('loading').style.display = 'none';
+    } catch(e) {
+      document.getElementById('loading').innerHTML = 
+        '<div style="color:#f87171;padding:20px;text-align:center">Erreur: ' + e.message.slice(0,200) + '</div>';
+    }
+  };
+  document.head.appendChild(s);
+});
+</script>
+<script id="app-source" type="text/plain">
+const {useState, useRef, useCallback, useEffect} = React;
 
 // ─── DONNÉES ───────────────────────────────────────────────────
 const POOL = [
@@ -2498,9 +2526,7 @@ return (
 );
 }
 
-const root = ReactDOM.createRoot(document.getElementById(‘root’));
-root.render(React.createElement(App));
-document.getElementById(‘loading’).style.display = ‘none’;
+ReactDOM.createRoot(document.getElementById(‘root’)).render(React.createElement(App));
 </script>
 
 </body>
